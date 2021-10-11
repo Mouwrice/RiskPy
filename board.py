@@ -2,9 +2,40 @@ from continent import Continent
 from territory import Territory
 
 
+def sanitize_territories(territories: [Territory]):
+    ids = set()
+    for territory in territories:
+        assert territory.id not in ids, f'Territory id\'s should be unique. Found double id: {territory.id}'
+        ids.add(territory.id)
+
+
 class Board:
-    def __init__(self, territories: [Territory], players: int):
+    def __init__(self, territories: [Territory]):
+        sanitize_territories(territories)
         self.territories: [Territory] = territories
+        self.free_territories = [territory for territory in territories]
+        self.id_to_territory = dict()
+        for territory in territories:
+            self.id_to_territory[territory.id] = territory
+
+    def __str__(self):
+        return '\n'.join([f'\n{self.id_to_territory[key].name}: {self.id_to_territory[key].continent.name} '
+                          f'{[connection.name for connection in self.id_to_territory[key].connections]}\n'
+                          + str(self.id_to_territory[key]) for key in
+                          self.id_to_territory.keys()])
+
+    def claim_territory(self, territory: int, player: 'Player'):
+        territory_id = self.free_territories[territory].id
+        del self.free_territories[territory]
+        self.id_to_territory[territory_id].player = player
+        self.id_to_territory[territory_id].armies = 1
+
+    def place_armies(self, territory: Territory, player: 'Player', armies: int):
+        if self.id_to_territory[territory.id].playerPlayer == player:
+            territory.armies += armies
+            return
+
+        print("Territory is already occupied by another player!")
 
 
 class ClassicBoard(Board):
@@ -20,58 +51,58 @@ class ClassicBoard(Board):
         # TERRITORIES
 
         # NORTH AMERICA
-        alaska = Territory("Alaska", north_america)
-        northwest_territory = Territory("Northwest Territory", north_america)
-        greenland = Territory("Greenland", north_america)
-        alberta = Territory("Alberta", north_america)
-        ontario = Territory("Ontario", north_america)
-        quebec = Territory("Quebec", north_america)
-        western_us = Territory("Western US", north_america)
-        eastern_us = Territory("Eastern US", north_america)
-        central_america = Territory("Central America", north_america)
+        alaska = Territory(1, "Alaska", north_america)
+        northwest_territory = Territory(2, "Northwest Territory", north_america)
+        greenland = Territory(3, "Greenland", north_america)
+        alberta = Territory(4, "Alberta", north_america)
+        ontario = Territory(5, "Ontario", north_america)
+        quebec = Territory(6, "Quebec", north_america)
+        western_us = Territory(7, "Western US", north_america)
+        eastern_us = Territory(8, "Eastern US", north_america)
+        central_america = Territory(9, "Central America", north_america)
 
         # SOUTH AMERICA
-        venezuela = Territory("Venezuela", south_america)
-        brazil = Territory("Brazil", south_america)
-        peru = Territory("Peru", south_america)
-        argentina = Territory("Argentina", south_america)
+        venezuela = Territory(10, "Venezuela", south_america)
+        brazil = Territory(11, "Brazil", south_america)
+        peru = Territory(12, "Peru", south_america)
+        argentina = Territory(13, "Argentina", south_america)
 
         # EUROPE
-        iceland = Territory("Iceland", europe)
-        scandinavia = Territory("Scandinavia", europe)
-        great_britain = Territory("Great Britain", europe)
-        northern_europe = Territory("Northern Europe", europe)
-        ukraine = Territory("Ukraine", europe)
-        western_europe = Territory("Western Europe", europe)
-        southern_europe = Territory("Southern Europe", europe)
+        iceland = Territory(14, "Iceland", europe)
+        scandinavia = Territory(15, "Scandinavia", europe)
+        great_britain = Territory(16, "Great Britain", europe)
+        northern_europe = Territory(17, "Northern Europe", europe)
+        ukraine = Territory(18, "Ukraine", europe)
+        western_europe = Territory(19, "Western Europe", europe)
+        southern_europe = Territory(20, "Southern Europe", europe)
 
         # ASIA
-        yakutsk = Territory("Yakutsk", asia)
-        ural = Territory("Ural", asia)
-        siberia = Territory("Siberia", asia)
-        irkutsk = Territory("Irkutsk", asia)
-        kamchatka = Territory("Kamcatka", asia)
-        afghanistan = Territory("Afghanistan", asia)
-        china = Territory("China", asia)
-        mongolia = Territory("Mongolia", asia)
-        japan = Territory("Japan", asia)
-        middle_east = Territory("Middle East", asia)
-        india = Territory("India", asia)
-        siam = Territory("Siam", asia)
+        yakutsk = Territory(21, "Yakutsk", asia)
+        ural = Territory(22, "Ural", asia)
+        siberia = Territory(23, "Siberia", asia)
+        irkutsk = Territory(24, "Irkutsk", asia)
+        kamchatka = Territory(25, "Kamcatka", asia)
+        afghanistan = Territory(26, "Afghanistan", asia)
+        china = Territory(27, "China", asia)
+        mongolia = Territory(28, "Mongolia", asia)
+        japan = Territory(29, "Japan", asia)
+        middle_east = Territory(30, "Middle East", asia)
+        india = Territory(31, "India", asia)
+        siam = Territory(32, "Siam", asia)
 
         # AFRICA
-        north_africa = Territory("North Africa", africa)
-        egypt = Territory("Egypt", africa)
-        congo = Territory("Congo", africa)
-        east_africa = Territory("East Africa", africa)
-        south_africa = Territory("South Africa", africa)
-        madagascar = Territory("Madagascar", africa)
+        north_africa = Territory(33, "North Africa", africa)
+        egypt = Territory(34, "Egypt", africa)
+        congo = Territory(35, "Congo", africa)
+        east_africa = Territory(36, "East Africa", africa)
+        south_africa = Territory(37, "South Africa", africa)
+        madagascar = Territory(38, "Madagascar", africa)
 
         # AUSTRALIA
-        indonesia = Territory("Indonesia", australia)
-        new_guinea = Territory("New Guinea", australia)
-        western_australia = Territory("Western Australia", australia)
-        eastern_australia = Territory("Eastern Australia", australia)
+        indonesia = Territory(39, "Indonesia", australia)
+        new_guinea = Territory(40, "New Guinea", australia)
+        western_australia = Territory(41, "Western Australia", australia)
+        eastern_australia = Territory(42, "Eastern Australia", australia)
 
         # CONNECTIONS
         alaska.connections = [northwest_territory, alberta, kamchatka]
@@ -127,4 +158,65 @@ class ClassicBoard(Board):
                           northern_europe, ukraine, western_europe, southern_europe, yakutsk, ural, siberia, irkutsk,
                           kamchatka, afghanistan, china, mongolia, japan, middle_east, india, siam, north_africa, egypt,
                           congo, east_africa, south_africa, madagascar, indonesia, new_guinea, western_australia,
-                          eastern_australia], players)
+                          eastern_australia])
+
+    def __str__(self):
+        # player per territory
+        p = [territory.player.id for territory in self.territories]
+        # armies per territory
+        a = [(4 - territory.armies) * " " + str(territory.armies) for territory in self.territories]
+
+        return f'         +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n' \
+            f'         |                                                                                                                                                                       |\n' \
+            f'  # # #  |  # # # # # # # # # # # # # # # # # # #                                                                                                        # # # # # # # # # # #   |\n' \
+            f' #       |                                       #                                                                                                      #                     #  |\n' \
+            f'#      *****           *****           *****      #                                                                                                    #       *****             |\n' \
+            f'#    * ALASK * ----- * NORTH * ----- * GREEN * -----+                  ..........                                               ........              #      * YAKUT *           |  #\n' \
+            f'#    * {p[0]}{a[0]} *       * /   / *       * /   / *    #  \                 . EUROPE .                                               . ASIA .             #       * /   / *           |    #\n' \
+            f'#      *****       /   *****       /   *****      #   \                ..........                                               ........            #      /   *****   \         |     #\n' \
+            f'#        |        /      |        /      |        #    \                                                                                           #      /      |      \        |      #\n' \
+            f'#        |       /       |       /       |        #     \     # # # # # # # # # # # # # # # #                             # # # # # # # # # # # # #      /       |       \       |       #\n' \
+            f'#        |      /        |      /        |        #      \   #                               #                           #                              /        |        \      |       #\n' \
+            f'#      *****   /       *****   /       *****      #       \ #      *****           *****      #                          #     *****           *****   /       *****       \   *****     #\n' \
+            f'#    * ALBER * ----- * ONTAR * ----- * QUEBE *    #        ----- * ICELA * ----- * SCAND *     #                      +----- * URAL  * ----- * SIBER * ----- * IRKUT * ----- * KAMCA *   #\n' \
+            f'#    * /   / *       * /   / *       * /   / *    #         #    * /   / *       * /   / *      #                    /   #   * /   / *       * /   / *       * /   / *       * /   / *   #\n' \
+            f'#      *****       /   *****       /   *****      #         #      *****       /   *****   \     #                  /    #     *****   \       *****   \       *****       /   *****     #\n' \
+            f'#        |        /      |        /              #          #        |        /      |      \     #                /     #       |      \        |      \        |        /      |       #\n' \
+            f'#        |       /       |       /     # # # # #            #        |       /       |       \     # # # # #      /      #       |       \       |       \       |       /       |       #\n' \
+            f'#        |      /        |      /     #                     #        |      /        |        \             #    /       #       |        \      |        \      |      /        |       #\n' \
+            f'#      *****   /       *****   /     #                      #      *****   /       *****       \   *****     #  /        #     *****       \   *****       \   *****   /      *****      #\n' \
+            f'#    * WESTE * ----- * EASTE *      #                       #    * GREAT * ----- * NORTH * ----- * UKRAI * ----+------------ * AFGHA * ----- * CHINA * ----- * MONGO * ----- * JAPAN *   #\n' \
+            f'#    * /   / *       * /   / *     #                        #    * /   / *       * /   / *       * /   / *    # \        #   * /   / *       * /   / *       * /   / *       * /   / *   #\n' \
+            f'#      *****       /   *****      #                         #      *****   \       *****   \       *****      #  \       #     *****   \       *****   \       *****          *****      #\n' \
+            f'#        |        /              #                          #               \        |      \        |        #   \      #       |      \        |      \        |                      #\n' \
+            f'#        |       /     # # # # #                             #               \       |       \       |        #    \     #       |       \       |       \       |           # # # # # #\n' \
+            f'#        |      /     #                                       #               \      |        \      |        #     \    #       |        \      |        \      |          #\n' \
+            f'#      *****   /     #   .................                     #               \   *****       \   *****      #      \   #     *****       \   *****       \   *****       #\n' \
+            f'#    * CENTR *      #    . NORTH AMERICA .                      #                * WESTE * ----- * SOUTH * -----------+----- * MIDDL * ----- * INDIA * ----- * SIAM  *    #\n' \
+            f'#    * /   / *     #     .................                       #               * /   / *       * /   / *    #      /   #   * /   / *       * /   / *       * /   / *   #\n' \
+            f'#      *****      #                                               #                *****        /  *****      #     /      /   *****          ******           *****    #\n' \
+            f' #       |       #                                                 #                 |         /     |      #      /      /                                      |     #\n' \
+            f'  # # #  |  # # #                                                   # # # # # # # #  |  # #   /   #  |  # #       /      /  # # # # # # # # # # # # # # # # # #  |  # #\n' \
+            f'         |                                                                           |       /       |           /      /                                        |\n' \
+            f'  # # #  |  # # # # # # # # # # #                                             # # #  |  #   /  # #   |  # # #   /      /                                  # # #  | # # # # # # # # # # # #\n' \
+            f' #       |                       #                                           #       |     /         |       # /      /                                 #        |                        #\n' \
+            f'#      *****           *****      #                                         #      *****  /        *****      /      /                                  #      *****           *****      #\n' \
+            f'#    * VENEZ * ----- * BRAZI * ------------------------------------------------- * NORTH * ----- * EGYPT * --+      /                                   #    * INDON * ----- * NEW G *    #\n' \
+            f'#    * /   / *       * /   / *    #                                         #    * /   / *       * /   / *    #    /                   .............    #    * /   / *       * /   / *    #\n' \
+            f'#      *****       /   *****      #                                         #      *****   \      *****       #   /                    . AUSTRALIA .    #      *****       /   *****      #\n' \
+            f'#        |        /      |        #                                         #        |      \        |        #  /                     .............    #        |        /      |        #\n' \
+            f'#        |       /       |        #                                         #        |       \       |        # /                                       #        |       /       |        #\n' \
+            f'#        |      /        |        #                                         #        |        \      |         /                                        #        |      /        |        #\n' \
+            f'#      *****   /       *****      #   .................                     #      *****       \   *****      /                                         #      *****   /       *****      #\n' \
+            f'#    * PERU  * ----- * ARGEN *    #   . SOUTH AMERICA .                     #    * CONGO * ----- * EAST  * --+                                          #     * WESTE * ----- * EASTE *   #\n' \
+            f'#    * /   / *       * /   / *    #   .................                     #    * /   / *       * /   / *    #                                         #     * /   / *       * /   / *   #\n' \
+            f'#      *****           *****      #                                         #      *****       /   *****      #                                         #       *****           *****     #\n' \
+            f' #                               #                                          #        |        /      |        #                                         #                                 #\n' \
+            f'  # # # # # # # # # # # # # # # #                                           #        |       /       |        #                                           # # # # # # # # # # # # # # # #\n' \
+            f'                                                                            #        |      /        |        #\n' \
+            f'                                                                            #      *****   /       *****      #   ..........\n' \
+            f'                                                                            #    * SOUTH * ----- * MADAG *    #   . AFRICA .\n' \
+            f'                                                                            #    * /   / *       * /   / *    #   ..........\n' \
+            f'                                                                            #      *****           *****      #\n' \
+            f'                                                                             #                               #\n' \
+            f'                                                                               # # # # # # # # # # # # # # #\n'
