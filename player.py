@@ -8,8 +8,15 @@ class Player(ABC):
         self.armies = 0
         self.id = player_id
         self.color = color
+        self.territories = []
 
     def claim_territory(self, board: Board):
+        pass
+
+    def place_armies(self, board: Board):
+        pass
+
+    def attack(self, board: Board):
         pass
 
     def colorize_text(self, text: str):
