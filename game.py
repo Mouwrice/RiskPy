@@ -47,7 +47,9 @@ class Game:
 
         player = self._first_player
         while self.board.free_territories:
+            print(self.board)
             self.players[player].claim_territory(self.board)
+            player = (player + 1) % 4
 
         print(self.board)
 
