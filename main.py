@@ -9,6 +9,7 @@ def main():
                  RandomPlayer("Player 3", 3, "\033[93m"),
                  RandomPlayer("Player 4", 4, "\033[94m")], board)
     game.setup()
+    game.play()
 
 
 if __name__ == '__main__':

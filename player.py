@@ -8,7 +8,9 @@ class Player(ABC):
         self.armies = 0
         self.id = player_id
         self.color = color
-        self.territories = []
+        self.territories: set = set()
+        self.continents: set = set()
+        self.index = None
 
     def claim_territory(self, board: Board):
         pass
@@ -17,6 +19,9 @@ class Player(ABC):
         pass
 
     def attack(self, board: Board):
+        pass
+
+    def free_move(self, board: Board):
         pass
 
     def colorize_text(self, text: str):

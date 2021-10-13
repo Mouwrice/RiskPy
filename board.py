@@ -9,14 +9,28 @@ def sanitize_territories(territories: [Territory]):
         ids.add(territory.id)
 
 
+def sanitize_continents(continents: [Continent]):
+    ids = set()
+    for continent in continents:
+        assert continent.id not in ids, f'Continent id\'s should be unique. Found double id: {continent.id}'
+
+
 class Board:
-    def __init__(self, territories: [Territory]):
+    def __init__(self, continents: [Continent], territories: [Territory]):
+        sanitize_continents(continents)
         sanitize_territories(territories)
-        self.territories: [Territory] = territories
+        self.continents = continents
+        self.territories = territories
         self.free_territories = [territory for territory in territories]
         self.id_to_territory = dict()
         for territory in territories:
             self.id_to_territory[territory.id] = territory
+
+        self.id_to_continent = dict()
+        for continent in continents:
+            self.id_to_continent[continent.id] = continent
+
+        self.armies_per_continent = dict()
 
     def __str__(self):
         return '\n'.join([f'\n{self.id_to_territory[key].name}: {self.id_to_territory[key].continent.name} '
@@ -24,29 +38,36 @@ class Board:
                           + str(self.id_to_territory[key]) for key in
                           self.id_to_territory.keys()])
 
-    def claim_territory(self, territory: int, player: 'Player'):
-        territory_id = self.free_territories[territory].id
-        del self.free_territories[territory]
-        self.id_to_territory[territory_id].player = player
-        self.id_to_territory[territory_id].armies = 1
+    def claim_territory(self, territory_index: int, player: 'Player'):
+        territory_id = self.free_territories[territory_index].id
+        player.armies -= 1
+        player.territories.add(self.free_territories[territory_index])
+        del self.free_territories[territory_index]
+        territory = self.id_to_territory[territory_id]
+        territory.player = player
+        territory.armies = 1
+
+        continent = self.id_to_continent[territory.continent.id]
+        continent.players[player.index] += 1
+        if continent.players[player.index] == continent.size:
+            player.continents.add(continent)
 
     def place_armies(self, territory: Territory, player: 'Player', armies: int):
-        if self.id_to_territory[territory.id].playerPlayer == player:
-            territory.armies += armies
-            return
-
-        print("Territory is already occupied by another player!")
+        assert self.id_to_territory[territory.id].player == player, "Territory is already occupied by another player!"
+        assert armies <= player.armies, "Not enough armies!"
+        territory.armies += armies
+        player.armies -= armies
 
 
 class ClassicBoard(Board):
     def __init__(self, players: int):
         # CONTINENTS
-        north_america = Continent("North America", players, 9)
-        europe = Continent("Europe", players, 6)
-        asia = Continent("Asia", players, 12)
-        south_america = Continent("South America", players, 4)
-        africa = Continent("Africa", players, 6)
-        australia = Continent("Australia", players, 4)
+        north_america = Continent(1, "North America", players, 9)
+        europe = Continent(2, "Europe", players, 6)
+        asia = Continent(3, "Asia", players, 12)
+        south_america = Continent(4, "South America", players, 4)
+        africa = Continent(5, "Africa", players, 6)
+        australia = Continent(6, "Australia", players, 4)
 
         # TERRITORIES
 
@@ -153,12 +174,23 @@ class ClassicBoard(Board):
         western_australia.connections = [indonesia, new_guinea, eastern_australia]
         eastern_australia.connections = [western_australia, new_guinea]
 
-        super().__init__([alaska, northwest_territory, greenland, alberta, ontario, quebec, western_us, eastern_us,
+        continents = [north_america, south_america, europe, asia, africa, australia]
+
+        super().__init__(continents,
+                         [alaska, northwest_territory, greenland, alberta, ontario, quebec, western_us, eastern_us,
                           central_america, venezuela, brazil, peru, argentina, iceland, scandinavia, great_britain,
                           northern_europe, ukraine, western_europe, southern_europe, yakutsk, ural, siberia, irkutsk,
-                          kamchatka, afghanistan, china, mongolia, japan, middle_east, india, siam, north_africa, egypt,
+                          kamchatka, afghanistan, china, mongolia, japan, middle_east, india, siam, north_africa,
+                          egypt,
                           congo, east_africa, south_africa, madagascar, indonesia, new_guinea, western_australia,
                           eastern_australia])
+
+        self.armies_per_continent[north_america] = 5
+        self.armies_per_continent[south_america] = 2
+        self.armies_per_continent[europe] = 5
+        self.armies_per_continent[asia] = 7
+        self.armies_per_continent[africa] = 3
+        self.armies_per_continent[australia] = 2
 
     def __str__(self):
         # player per territory
@@ -173,7 +205,7 @@ class ClassicBoard(Board):
             else:
                 v.append(territory.player.colorize_text("*"))
                 h.append(territory.player.colorize_text("*****"))
-                t.append(str(territory.player.id) + (4 - territory.armies) * " " + str(territory.armies) + " ")
+                t.append(str(territory.player.id) + (4 - len(str(territory.armies))) * " " + str(territory.armies) + " ")
 
         return f'         +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n' \
                f'         |                                                                                                                                                                       |\n' \
@@ -193,17 +225,17 @@ class ClassicBoard(Board):
                f'#        |        /      |        /              #          #        |        /      |      \\     #                /     #       |      \\        |      \\        |        /      |       #\n' \
                f'#        |       /       |       /     # # # # #            #        |       /       |       \\     # # # # #      /      #       |       \\       |       \\       |       /       |       #\n' \
                f'#        |      /        |      /     #                     #        |      /        |        \\             #    /       #       |        \\      |        \\      |      /        |       #\n' \
-               f'#      {h[6]}   /       {h[7]}   /     #                      #      {h[15]}   /       {h[16]}       \\   {h[17]}     #  /        #     {h[25]}       \\   {h[26]}       \\   {h[27]}   /      {h[28]}      #\n' \
+               f'#      {h[6]}   /       {h[7]}   /     #                      #      {h[15]}   /       {h[16]}       \\   {h[17]}     #  /        #     {h[25]}       \\   {h[26]}       \\   {h[27]}   /       {h[28]}     #\n' \
                f'#    {v[6]} WESTE {v[6]} ----- {v[7]} EASTE {v[7]}      #                       #    {v[15]} GREAT {v[15]} ----- {v[16]} NORTH {v[16]} ----- {v[17]} UKRAI {v[17]} ----+------------ {v[25]} AFGHA {v[25]} ----- {v[26]} CHINA {v[26]} ----- {v[27]} MONGO {v[27]} ----- {v[28]} JAPAN {v[28]}   #\n' \
                f'#    {v[6]} {t[6]}{v[6]}       {v[7]} {t[7]}{v[7]}     #                        #    {v[15]} {t[15]}{v[15]}       {v[16]} {t[16]}{v[16]}       {v[17]} {t[17]}{v[17]}    # \\        #   {v[25]} {t[25]}{v[25]}       {v[26]} {t[26]}{v[26]}       {v[27]} {t[27]}{v[27]}       {v[28]} {t[28]}{v[28]}   #\n' \
-               f'#      {h[6]}       /   {h[7]}      #                         #      {h[15]}   \\       {h[16]}   \\       {h[17]}      #  \\       #     {h[25]}   \\       {h[26]}   \\       {h[27]}          {h[28]}      #\n' \
+               f'#      {h[6]}       /   {h[7]}      #                         #      {h[15]}   \\       {h[16]}   \\       {h[17]}      #  \\       #     {h[25]}   \\       {h[26]}   \\       {h[27]}           {h[28]}     #\n' \
                f'#        |        /              #                          #               \\        |      \\        |        #   \\      #       |      \\        |      \\        |                      #\n' \
                f'#        |       /     # # # # #                             #               \\       |       \\       |        #    \\     #       |       \\       |       \\       |           # # # # # #\n' \
                f'#        |      /     #                                       #               \\      |        \\      |        #     \\    #       |        \\      |        \\      |          #\n' \
                f'#      {h[8]}   /     #   .................                     #               \\   {h[18]}       \\   {h[19]}      #      \\   #     {h[29]}       \\   {h[30]}       \\   {h[31]}       #\n' \
                f'#    {v[8]} CENTR {v[8]}      #    . NORTH AMERICA .                      #                {v[18]} WESTE {v[18]} ----- {v[19]} SOUTH {v[19]} -----------+----- {v[29]} MIDDL {v[29]} ----- {v[30]} INDIA {v[30]} ----- {v[31]} SIAM  {v[31]}    #\n' \
                f'#    {v[8]} {t[8]}{v[8]}     #     .................                       #               {v[18]} {t[18]}{v[18]}       {v[19]} {t[19]}{v[19]}    #      /   #   {v[29]} {t[29]}{v[29]}       {v[30]} {t[30]}{v[30]}       {v[31]} {t[31]}{v[31]}   #\n' \
-               f'#      {h[8]}      #                                               #                {h[18]}        /  {h[19]}      #     /      /   {h[29]}            {h[30]}          {h[31]}    #\n' \
+               f'#      {h[8]}      #                                               #                {h[18]}        /  {h[19]}      #     /      /   {h[29]}           {h[30]}           {h[31]}    #\n' \
                f' #       |       #                                                 #                 |         /     |      #      /      /                                      |     #\n' \
                f'  # # #  |  # # #                                                   # # # # # # # #  |  # #   /   #  |  # #       /      /  # # # # # # # # # # # # # # # # # #  |  # #\n' \
                f'         |                                                                           |       /       |           /      /                                        |\n' \
@@ -212,7 +244,7 @@ class ClassicBoard(Board):
                f'#      {h[9]}           {h[10]}     #                                          #      {h[32]}  /        {h[33]}      /      /                                  #      {h[38]}           {h[39]}      #\n' \
                f'#    {v[9]} VENEZ {v[9]} ----- {v[10]} BRAZI {v[10]} ------------------------------------------------- {v[32]} NORTH {v[32]} ----- {v[33]} EGYPT {v[33]} --+      /                                   #    {v[38]} INDON {v[38]} ----- {v[39]} NEW G {v[39]}    #\n' \
                f'#    {v[9]} {t[9]}{v[9]}       {v[10]} {t[10]}{v[10]}    #                                         #    {v[32]} {t[32]}{v[32]}       {v[33]} {t[33]}{v[33]}    #    /                   .............    #    {v[38]} {t[38]}{v[38]}       {v[39]} {t[39]}{v[39]}    #\n' \
-               f'#      {h[9]}       /   {h[10]}      #                                         #      {h[32]}   \\      {h[33]}       #   /                    . AUSTRALIA .    #      {h[38]}       /   {h[39]}      #\n' \
+               f'#      {h[9]}       /   {h[10]}      #                                         #      {h[32]}   \\       {h[33]}      #   /                    . AUSTRALIA .    #      {h[38]}       /   {h[39]}      #\n' \
                f'#        |        /      |        #                                         #        |      \\        |        #  /                     .............    #        |        /      |        #\n' \
                f'#        |       /       |        #                                         #        |       \\       |        # /                                       #        |       /       |        #\n' \
                f'#        |      /        |        #                                         #        |        \\      |         /                                        #        |      /        |        #\n' \
@@ -226,6 +258,6 @@ class ClassicBoard(Board):
                f'                                                                            #      {h[36]}   /       {h[37]}      #   ..........\n' \
                f'                                                                            #    {v[36]} SOUTH {v[36]} ----- {v[37]} MADAG {v[37]}    #   . AFRICA .\n' \
                f'                                                                            #    {v[36]} {t[36]}{v[36]}       {v[37]} {t[37]}{v[37]}    #   ..........\n' \
-               f'                                                                            #      {h[36]}           {h[37 ]}      #\n' \
+               f'                                                                            #      {h[36]}           {h[37]}      #\n' \
                f'                                                                             #                               #\n' \
                f'                                                                               # # # # # # # # # # # # # # #\n'
