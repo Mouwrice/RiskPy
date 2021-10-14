@@ -27,13 +27,27 @@ def first_player(players: [Player]):
     return players_index[0]
 
 
+def verify_attack(player: Player, die: int, attacker: Territory, defender: Territory):
+    assert attacker.player == player, f'Invalid attack territory. Territory {attacker.name} should be owned by' \
+                                      f'{player.name.capitalize()}'
+    assert 0 < die < attacker.armies, f'Number of dies should be between 1 and 3 and one less than the amount of armies' \
+                                      f'on the territory.'
+    assert defender.player != player, f'Can only attack other players, not yourself.'
+
+
+def verify_defense(die: int, defender: Territory):
+    assert 0 < die <= max(2, defender.armies), 'Incorrect number of dies used by the defender.'
+
+
 class Game:
     def __init__(self, players: [Player], board: Board):
         self.players: [Player] = players
+        self.defeated_players: [Player] = []
+        for i, player in enumerate(self.players):
+            player.id = i
+
         self.board: Board = board
         self.game_over = False
-        for i, player in enumerate(players):
-            player.index = i
 
     def setup(self):
         """
@@ -72,15 +86,59 @@ class Game:
         print(f'{player.name.capitalize()} has received a total of {armies} armies. {player.name.capitalize()} now has '
               f'{player.armies} armies.\n')
 
-    def verify_attack(self, die: int, attacker: Territory, defender: Territory):
-        pass
+    def simulate_attack(self, player: Player, attack: int, attacker: Territory, defender: Territory):
+        verify_attack(player, attack, attacker, defender)
 
-    def verify_defense(self, die: int, attacker: Territory, defender: Territory):
-        pass
+        # Amount of dice used by the defender
+        defense = defender.player.defend(attack, attacker, defender)
+        verify_defense(defense, defender)
 
-    def simulate_attack(self, die: int, attacker: Territory, defender: Territory):
-        self.verify_attack(die, attacker, defender)
-        pass
+        attacker_rolls = sorted(dice.player_rolls_dices(player, attack))
+        defender_rolls = sorted(dice.player_rolls_dices(player, defense))
+
+        attacker_losses = 0
+        defender_losses = 0
+        for i in range(min(len(attacker_rolls), len(defender_rolls))):
+            if attacker_rolls[i] > defender_rolls[i]:
+                defender_losses += 1
+            else:
+                attacker_losses += 1
+
+        attacker.armies -= attacker_losses
+        defender.armies -= defender_losses
+
+        if defender_losses == defender.armies:
+            print(f'{player.name.capitalize()} has defeated all armies and captures {defender.name}!')
+            defender.player.territories.remove(defender)
+            attacker.player.territories.add(defender)
+            defender.player = attacker.player
+            defender.armies = 1  # TODO
+            defender.continent.players[defender.player.id] -= 1
+            defender.continent.players[attacker.player.id] += 1
+
+            if defender.continent.players[attacker.player.id] == defender.continent.size:
+                print(f'\n{attacker.player.name} has taken over the entirety of {defender.continent.name}!\n')
+
+            if len(defender.player.territories) == 0:
+                print(f'\n{defender.player.name.upper()} IS DEFEATED BY {attacker.player.upper()}!!\n')
+                self.players.remove(defender.player)
+                self.defeated_players.append(defender.player)
+
+                # Check for game over
+                if len(self.players) == 1:
+                    self.game_over = True
+                    winner = self.players[0]
+                    for territory in self.board.territories:
+                        assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
+
+                    print(f'\n\n {winner.name.upper()} HAS WON THE GAME!!! \n\n')
+        else:
+            print(f'{player.name.capitalize()} was not able to take {defender.name}.\n')
+            print("Losses:")
+            if attacker_losses > 0:
+                print(f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {defender.name}.')
+            if defender_losses > 0:
+                print(f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
 
     def verify_free_move(self, armies: int, origin: Territory, destination: Territory):
         pass
@@ -120,8 +178,11 @@ class Game:
             attack = current_player.attack(self.board)
             while attack is not None:
                 (die, attacker, defender) = attack
-                self.simulate_attack(die, attacker, defender)
+                self.simulate_attack(current_player, die, attacker, defender)
                 attack = current_player.attack(self.board)
+                print()
+                print(self.board)
+                print()
 
             free_move = current_player.free_move(self.board)
             if free_move is not None:

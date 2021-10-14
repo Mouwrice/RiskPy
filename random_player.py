@@ -1,6 +1,9 @@
+from math import ceil
+
 from player import Player
 from board import Board
 import random
+from territory import Territory
 
 
 class RandomPlayer(Player):
@@ -10,11 +13,6 @@ class RandomPlayer(Player):
         board.claim_territory(territory, self)
 
     def place_armies(self, board: Board):
-        """
-        Place armies on 1 territory
-        :return: Empty list if the player does not want to place armies
-        else [(armies, territory)]
-        """
         army_placement = []
         territories = list(self.territories)
         amount = random.randint(0, len(territories) - 1)
@@ -33,4 +31,27 @@ class RandomPlayer(Player):
         return army_placement
 
     def attack(self, board: Board):
-        pass
+        # Chance to attack
+        attack_chance = len(self.territories) / len(board.territories)
+        if random.random() > attack_chance:
+            return None
+
+        # Create valid attacks, chooses a random connection to an enemy territory
+        valid_attacks = []
+        for territory in self.territories:
+            # A territory should have at least 2 armies
+            if territory.armies >= 2:
+                # Can only attack from a territory adjecent to an enemy territory
+                enemy_territories = []
+                for enemy_territory in territory.connections:
+                    if enemy_territory.player != self:
+                        enemy_territories.append(enemy_territory)
+                if len(enemy_territories) > 0:
+                    valid_attacks.append((territory, random.choice(enemy_territories)))
+
+        (attacker, defender) = valid_attacks[random.randint(0, len(valid_attacks) - 1)]
+        dice = random.randint(1, min(attacker.armies, 3))  # Attacker may only use a maximum of 3 dice
+        return dice, attacker, defender
+
+    def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
+        return min(2, ceil(random.randrange(dice)))

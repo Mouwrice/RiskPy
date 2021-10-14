@@ -11,14 +11,3 @@ class Territory:
         self.armies = 0
         self.player = None
 
-    def __str__(self):
-        player = '/'
-        if self.player:
-            player = self.player
-        armies = '/'
-        if self.armies > 0:
-            armies = self.armies
-        return f'  ***** \n' \
-               f'* {self.abbr} *\n' \
-               f'* {player}   {armies} *\n' \
-               f'  ***** '

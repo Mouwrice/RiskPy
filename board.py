@@ -48,8 +48,8 @@ class Board:
         territory.armies = 1
 
         continent = self.id_to_continent[territory.continent.id]
-        continent.players[player.index] += 1
-        if continent.players[player.index] == continent.size:
+        continent.players[player.id] += 1
+        if continent.players[player.id] == continent.size:
             player.continents.add(continent)
 
     def place_armies(self, territory: Territory, player: 'Player', armies: int):
