@@ -1,5 +1,3 @@
-from math import ceil
-
 from player import Player
 from board import Board
 import random
@@ -57,3 +55,8 @@ class RandomPlayer(Player):
 
     def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
         return min(2, defender.armies)
+
+
+class RandomPeacefulPlayer(RandomPlayer):
+    def attack(self, board: Board):
+        return None

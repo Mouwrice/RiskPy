@@ -73,7 +73,7 @@ class Game:
         while self.board.free_territories:
             print(self.board)
             self.players[player].claim_territory(self.board)
-            player = (player + 1) % 4
+            player = (player + 1) % len(self.players)
 
         print(self.board)
         print("-- SETUP COMPLETE --\n")
@@ -114,6 +114,7 @@ class Game:
 
         if defender.armies == 0:
             print(f'{player.name.capitalize()} has defeated all armies and captures {defender.name}!')
+            defending_player = defender.player
             defender.player.territories.remove(defender)
             attacker.player.territories.add(defender)
             defender.player = attacker.player
@@ -124,10 +125,10 @@ class Game:
             if defender.continent.players[attacker.player.id] == defender.continent.size:
                 print(f'\n{attacker.player.name} has taken over the entirety of {defender.continent.name}!\n')
 
-            if len(defender.player.territories) == 0:
-                print(f'\n{defender.player.name.upper()} IS DEFEATED BY {attacker.player.upper()}!!\n')
-                self.players.remove(defender.player)
-                self.defeated_players.append(defender.player)
+            if len(defending_player.territories) == 0:
+                print(f'\n{defending_player.name.upper()} IS DEFEATED BY {attacker.player.name.upper()}!!\n')
+                self.players.remove(defending_player)
+                self.defeated_players.append(defending_player)
 
                 # Check for game over
                 if len(self.players) == 1:
@@ -137,13 +138,15 @@ class Game:
                         assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
 
                     print(f'\n\n {winner.name.upper()} HAS WON THE GAME!!! \n\n')
+
         else:
             print(f'{player.name.capitalize()} was not able to take {defender.name}.\n')
-            print("Losses:")
-            if attacker_losses > 0:
-                print(f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {defender.name}.')
-            if defender_losses > 0:
-                print(f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
+
+        print("Losses:")
+        if attacker_losses > 0:
+            print(f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}.')
+        if defender_losses > 0:
+            print(f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
 
     def verify_free_move(self, armies: int, origin: Territory, destination: Territory):
         pass
@@ -159,7 +162,6 @@ class Game:
         turn = 1
         current_player = self.players[player]
         while not self.game_over:
-        # for _ in range(20):
             print(f'\nTURN {turn}:\n {current_player.name}')
             turn += 1
 
