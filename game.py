@@ -31,12 +31,16 @@ def verify_attack(player: Player, die: int, attacker: Territory, defender: Terri
     assert attacker.player == player, f'Invalid attack territory. Territory {attacker.name} should be owned by' \
                                       f'{player.name.capitalize()}'
     assert 0 < die < attacker.armies, f'Number of dies should be between 1 and 3 and one less than the amount of armies' \
-                                      f'on the territory.'
+                                      f'on the territory.\n' \
+                                      f'armies: {attacker.armies}\n' \
+                                      f'die:    {die}\n'
     assert defender.player != player, f'Can only attack other players, not yourself.'
 
 
 def verify_defense(die: int, defender: Territory):
-    assert 0 < die <= max(2, defender.armies), 'Incorrect number of dies used by the defender.'
+    assert 0 < die <= max(2, defender.armies), f'Incorrect number of dies used by the defender.\n' \
+                                               f'{str(defender)}' \
+                                               f'die: {die}'
 
 
 class Game:
@@ -75,7 +79,7 @@ class Game:
         print("-- SETUP COMPLETE --\n")
 
     def accumulate_armies(self, player: Player):
-        armies = min(3, len(player.territories) // 3)
+        armies = max(3, len(player.territories) // 3)
         print(f'{player.name.capitalize()} receives {armies} armies.')
         for continent in player.continents:
             extra = self.board.armies_per_continent[continent]
@@ -87,14 +91,15 @@ class Game:
               f'{player.armies} armies.\n')
 
     def simulate_attack(self, player: Player, attack: int, attacker: Territory, defender: Territory):
+        print(f'\n{attacker.player.name} attacks {defender.name}!')
         verify_attack(player, attack, attacker, defender)
 
         # Amount of dice used by the defender
-        defense = defender.player.defend(attack, attacker, defender)
+        defense = defender.player.defend(attack, attacker, defender, self.board)
         verify_defense(defense, defender)
 
-        attacker_rolls = sorted(dice.player_rolls_dices(player, attack))
-        defender_rolls = sorted(dice.player_rolls_dices(player, defense))
+        attacker_rolls = sorted(dice.player_rolls_dices(attacker.player, attack))
+        defender_rolls = sorted(dice.player_rolls_dices(defender.player, defense))
 
         attacker_losses = 0
         defender_losses = 0
@@ -107,7 +112,7 @@ class Game:
         attacker.armies -= attacker_losses
         defender.armies -= defender_losses
 
-        if defender_losses == defender.armies:
+        if defender.armies == 0:
             print(f'{player.name.capitalize()} has defeated all armies and captures {defender.name}!')
             defender.player.territories.remove(defender)
             attacker.player.territories.add(defender)
@@ -153,9 +158,9 @@ class Game:
 
         turn = 1
         current_player = self.players[player]
-        # while not self.game_over:
-        for _ in range(20):
-            print(f'\nTURN {turn}:\n')
+        while not self.game_over:
+        # for _ in range(20):
+            print(f'\nTURN {turn}:\n {current_player.name}')
             turn += 1
 
             print("Army Accumulation:")

@@ -32,8 +32,7 @@ class RandomPlayer(Player):
 
     def attack(self, board: Board):
         # Chance to attack
-        attack_chance = len(self.territories) / len(board.territories)
-        if random.random() > attack_chance:
+        if random.random() > 0.5:
             return None
 
         # Create valid attacks, chooses a random connection to an enemy territory
@@ -49,9 +48,12 @@ class RandomPlayer(Player):
                 if len(enemy_territories) > 0:
                     valid_attacks.append((territory, random.choice(enemy_territories)))
 
+        if len(valid_attacks) == 0:
+            return None
+
         (attacker, defender) = valid_attacks[random.randint(0, len(valid_attacks) - 1)]
-        dice = random.randint(1, min(attacker.armies, 3))  # Attacker may only use a maximum of 3 dice
+        dice = random.randint(1, min(attacker.armies - 1, 3))  # Attacker may only use a maximum of 3 dice
         return dice, attacker, defender
 
     def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
-        return min(2, ceil(random.randrange(dice)))
+        return min(2, defender.armies)

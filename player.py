@@ -12,6 +12,11 @@ class Player(ABC):
         self.territories: set = set()
         self.continents: set = set()
 
+    def __str__(self):
+        return f'{self.name}:\n' \
+               f'   id: {self.id}\n' \
+               f'   armies: {self.armies}\n'
+
     def claim_territory(self, board: Board):
         pass
 

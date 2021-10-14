@@ -11,3 +11,9 @@ class Territory:
         self.armies = 0
         self.player = None
 
+    def __str__(self):
+        return f'{self.name}\n' \
+               f'   id: {self.id}\n' \
+               f'   continent: {self.continent.name}\n' \
+               f'   armies: {self.armies}\n' \
+               f'   player: {str(self.player)}\n'
