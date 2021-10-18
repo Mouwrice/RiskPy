@@ -53,6 +53,8 @@ class Game:
         self.board: Board = board
         self.game_over = False
 
+        self.armies = len(players) * [180]  # The amount of armies in the box per player
+
     def setup(self):
         """
         Initial occupation of territories
@@ -64,29 +66,48 @@ class Game:
         # Every player receives initial amount of armies
         for player in self.players:
             player.armies = armies_per_players
+            assert self.armies[player.id] >= armies_per_players, "Not enough armies in the box."
+            self.armies[player.id] -= armies_per_players
 
         # Decide who gets to go first
         print("Highest roller gets to place it's armies first!\n")
-        player = first_player(self.players)
-        print(f"{self.players[player].name.capitalize()} may begin!\n")
+        player = self.players[first_player(self.players)]
+        print(f"{player.name.capitalize()} may begin!\n")
 
         while self.board.free_territories:
             print(self.board)
-            self.players[player].claim_territory(self.board)
-            player = (player + 1) % len(self.players)
+            assert self.armies[player.id] >= 0, "Not enough armies in the box."
+            territory = player.claim_territory(self.board)
+            self.board.claim_territory(territory, player)
+            player = self.players[(player.id + 1) % len(self.players)]
 
         print(self.board)
         print("-- SETUP COMPLETE --\n")
 
     def accumulate_armies(self, player: Player):
-        armies = max(3, len(player.territories) // 3)
+        if self.armies[player.id] == 0:
+            print(f'No more armies available in the box.')
+            return
+
+        armies = min(self.armies[player.id], max(3, len(player.territories) // 3))
+
         print(f'{player.name.capitalize()} receives {armies} armies.')
+
+        if self.armies[player.id] <= 3:
+            player.armies += armies
+            self.armies[player.id] -= armies
+            return
+
         for continent in player.continents:
             extra = self.board.armies_per_continent[continent]
-            armies += extra
-            print(f'{player.name.capitalize()} receives {extra} armies for occupying the entirety of {continent.name}!')
+            if extra < self.armies[player.id]:
+                armies += extra
+                print(f'{player.name.capitalize()} receives {extra} armies for occupying the entirety of {continent.name}!')
+            else:
+                print(f'Not enough armies in the box.')
 
         player.armies += armies
+        self.armies[player.id] -= armies
         print(f'{player.name.capitalize()} has received a total of {armies} armies. {player.name.capitalize()} now has '
               f'{player.armies} armies.\n')
 
@@ -110,15 +131,29 @@ class Game:
                 attacker_losses += 1
 
         attacker.armies -= attacker_losses
+        self.armies[attacker.player.id] += attacker_losses
         defender.armies -= defender_losses
+        self.armies[defender.player.id] += defender_losses
 
         if defender.armies == 0:
             print(f'{player.name.capitalize()} has defeated all armies and captures {defender.name}!')
             defending_player = defender.player
             defender.player.territories.remove(defender)
             attacker.player.territories.add(defender)
+
+            print("Losses:")
+            if attacker_losses > 0:
+                print(f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}.')
+            if defender_losses > 0:
+                print(f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
+
             defender.player = attacker.player
-            defender.armies = 1  # TODO
+            capture = attacker.player.capture(attack, attacker, defender)
+            assert capture >= attack, "You must move into the territory with at least as many armies as the number of dice rolled."
+            assert capture < attacker.armies, "Not enough armies on territory. No territory may ever be left unoccupied at any time during the game."
+            defender.armies = capture
+            attacker.armies -= capture
+
             defender.continent.players[defender.player.id] -= 1
             defender.continent.players[attacker.player.id] += 1
 
@@ -137,16 +172,10 @@ class Game:
                     for territory in self.board.territories:
                         assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
 
-                    print(f'\n\n {winner.name.upper()} HAS WON THE GAME!!! \n\n')
+                    print(f'\n\n {winner.name.upper()} HAS WON THE GAME!!!\n\n')
 
         else:
             print(f'{player.name.capitalize()} was not able to take {defender.name}.\n')
-
-        print("Losses:")
-        if attacker_losses > 0:
-            print(f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}.')
-        if defender_losses > 0:
-            print(f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
 
     def verify_free_move(self, armies: int, origin: Territory, destination: Territory):
         pass

@@ -7,8 +7,7 @@ from territory import Territory
 class RandomPlayer(Player):
 
     def claim_territory(self, board: Board):
-        territory = random.randint(0, len(board.free_territories) - 1)
-        board.claim_territory(territory, self)
+        return random.randint(0, len(board.free_territories) - 1)
 
     def place_armies(self, board: Board):
         army_placement = []
@@ -52,6 +51,9 @@ class RandomPlayer(Player):
         (attacker, defender) = valid_attacks[random.randint(0, len(valid_attacks) - 1)]
         dice = random.randint(1, min(attacker.armies - 1, 3))  # Attacker may only use a maximum of 3 dice
         return dice, attacker, defender
+
+    def capture(self, dice: int, attacker: Territory, defender: Territory):
+        return random.randint(dice, attacker.armies - 1)
 
     def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
         return min(2, defender.armies)

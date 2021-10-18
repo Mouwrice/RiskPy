@@ -31,6 +31,9 @@ class Player(ABC):
     def attack(self, board: Board):
         pass
 
+    def capture(self, dice: int, attacker: Territory, defender: Territory):
+        pass
+
     def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
         pass
 
