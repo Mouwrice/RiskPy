@@ -27,9 +27,9 @@ class RandomPlayer(Player):
 
         return army_placement
 
-    def attack(self, board: Board):
+    def attack(self, board: Board, attack_chance: float = 0.5):
         # Chance to attack
-        if random.random() > 0.5:
+        if random.random() >= attack_chance:
             return None
 
         # Create valid attacks, chooses a random connection to an enemy territory
@@ -58,7 +58,42 @@ class RandomPlayer(Player):
     def defend(self, dice: int, attacker: Territory, defender: Territory, board: Board):
         return min(2, defender.armies)
 
+    def free_move(self, board: Board):
+
+        valid_origins = []
+        for territory in self.territories:
+            if territory.armies > 1:
+                valid_origins.append(territory)
+
+        if not valid_origins:
+            return
+
+        origin = random.choice(valid_origins)
+
+        valid_destinations = []
+        for territory in origin.connections:
+            if territory.player == self:
+                valid_destinations.append(territory)
+
+        if not valid_destinations:
+            return None
+
+        destination = random.choice(valid_destinations)
+        armies = random.randint(1, origin.armies - 1)
+        return armies, origin, destination
+
 
 class RandomPeacefulPlayer(RandomPlayer):
-    def attack(self, board: Board):
+    """
+    Never attacks
+    """
+    def attack(self, board: Board, attack_chance=0):
         return None
+
+
+class RandomHostilePlayer(RandomPlayer):
+    """
+    Always attacks and always places armies
+    """
+    def attack(self, board: Board, attack_chance=1):
+        return super().attack(board, attack_chance)

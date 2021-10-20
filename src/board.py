@@ -1,5 +1,7 @@
 from continent import Continent
 from territory import Territory
+import time
+import os
 
 
 def sanitize_territories(territories: [Territory]):
@@ -32,13 +34,15 @@ class Board:
 
         self.armies_per_continent = dict()
 
+        self.extra_info = [None] * 6  # Extra lines to print game info on the board
+
     def __str__(self):
         return '\n'.join([f'\n{self.id_to_territory[key].name}: {self.id_to_territory[key].continent.name} '
                           f'{[connection.name for connection in self.id_to_territory[key].connections]}\n'
                           + str(self.id_to_territory[key]) for key in
                           self.id_to_territory.keys()])
 
-    def claim_territory(self, territory_index: int, player: 'Player'):
+    def claim_territory(self, territory_index: int, player):
         territory_id = self.free_territories[territory_index].id
         player.armies -= 1
         player.territories.add(self.free_territories[territory_index])
@@ -52,11 +56,24 @@ class Board:
         if continent.players[player.id] == continent.size:
             player.continents.add(continent)
 
-    def place_armies(self, territory: Territory, player: 'Player', armies: int):
+    def place_armies(self, territory: Territory, player, armies: int):
         assert self.id_to_territory[territory.id].player == player, "Territory is already occupied by another player!"
         assert armies <= player.armies, "Not enough armies!"
         territory.armies += armies
         player.armies -= armies
+
+    def print_board(self, delay: float = 0, extra_info: [str] = None):
+        if extra_info is None:
+            self.extra_info = [None] * 6
+        else:
+            for i, info in enumerate(self.extra_info):
+                if i < len(extra_info):
+                    self.extra_info[i] = extra_info[i][:75]
+                else:
+                    self.extra_info[i] = None
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(self)
+        time.sleep(delay)
 
 
 class ClassicBoard(Board):
@@ -207,6 +224,13 @@ class ClassicBoard(Board):
                 h.append(territory.player.colorize_text("*****"))
                 t.append(str(territory.player.id) + (4 - len(str(territory.armies))) * " " + str(territory.armies) + " ")
 
+        i = []
+        for info in self.extra_info:
+            if info is None:
+                i.append(74 * " ")
+            else:
+                i.append(info + (74 - len(info)) * " ")
+
         return f'         +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n' \
                f'         |                                                                                                                                                                       |\n' \
                f'  # # #  |  # # # # # # # # # # # # # # # # # # #                                                                                                        # # # # # # # # # # #   |\n' \
@@ -255,9 +279,9 @@ class ClassicBoard(Board):
                f' #                               #                                          #        |        /      |        #                                         #                                 #\n' \
                f'  # # # # # # # # # # # # # # # #                                           #        |       /       |        #                                           # # # # # # # # # # # # # # # #\n' \
                f'                                                                            #        |      /        |        #\n' \
-               f'                                                                            #      {h[36]}   /       {h[37]}      #   ..........\n' \
-               f'                                                                            #    {v[36]} SOUTH {v[36]} ----- {v[37]} MADAG {v[37]}    #   . AFRICA .\n' \
-               f'                                                                            #    {v[36]} {t[36]}{v[36]}       {v[37]} {t[37]}{v[37]}    #   ..........\n' \
-               f'                                                                            #      {h[36]}           {h[37]}      #\n' \
-               f'                                                                             #                               #\n' \
-               f'                                                                               # # # # # # # # # # # # # # #\n'
+               f' {i[0]} #      {h[36]}   /       {h[37]}      #   ..........\n' \
+               f' {i[1]} #    {v[36]} SOUTH {v[36]} ----- {v[37]} MADAG {v[37]}    #   . AFRICA .\n' \
+               f' {i[2]} #    {v[36]} {t[36]}{v[36]}       {v[37]} {t[37]}{v[37]}    #   ..........\n' \
+               f' {i[3]} #      {h[36]}           {h[37]}      #\n' \
+               f' {i[4]}  #                               #\n' \
+               f' {i[5]}    # # # # # # # # # # # # # # #\n'
