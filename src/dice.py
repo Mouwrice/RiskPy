@@ -10,8 +10,7 @@ def roll_dices(amount: int):
 def player_rolls_dices(player: Player, amount: int):
     rolls = roll_dices(amount)
     joined = ', '.join([str(roll) for roll in rolls])
-    print(f"{player.name.capitalize()} rolls {amount} {'dice' if amount > 1 else 'die'}: {joined}")
-    return rolls
+    return rolls, f"{player.name.capitalize()} rolls {amount} {'dice' if amount > 1 else 'die'}: {joined}"
 
 
 def players_roll_dice(players: [Player]):
