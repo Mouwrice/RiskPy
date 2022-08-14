@@ -1,11 +1,14 @@
+import time
+
 from board import Board
 from player import Player
 import dice
 from territory import Territory
+from util import print_verbose
 
 
-def first_player(players: [Player]):
-    rolls = dice.players_roll_dice(players)
+def first_player(players: [Player], verbose):
+    rolls = dice.players_roll_dice(players, verbose)
     players_index = [i for i in range(len(players))]
     highest = rolls[0]
     i = 1
@@ -22,7 +25,7 @@ def first_player(players: [Player]):
             loop += 1
             if loop == 2:
                 loop = 0
-                rolls = dice.players_roll_dice([players[player] for player in players_index])
+                rolls = dice.players_roll_dice([players[player] for player in players_index], verbose)
 
     return players_index[0]
 
@@ -68,13 +71,15 @@ class Game:
 
         self.armies = len(players) * [180]  # The amount of armies in the box per player
 
-    def setup(self):
+    def setup(self, verbose: bool = True, print_duration: float = 1.0):
         """
+        :param verbose: Should the game print information to the console or not
+        :param print_duration: How long the information is displayed before continuing
         Initial occupation of territories
         """
-        print("--- SETUP ---\n")
+        print_verbose("--- SETUP ---\n", verbose, print_duration)
         armies_per_players = [50, 35, 30, 25, 20][len(self.players) - 2]
-        print(f'Armies per player: {armies_per_players}\n')
+        print_verbose(f'Armies per player: {armies_per_players}\n', verbose, print_duration)
 
         # Every player receives initial amount of armies
         for player in self.players:
@@ -83,24 +88,28 @@ class Game:
             self.armies[player.id] -= armies_per_players
 
         # Decide who gets to go first
-        print("Highest roller gets to place it's armies first!\n")
-        player = self.players[first_player(self.players)]
-        print(f"{player.name.capitalize()} may begin!\n")
+        print_verbose("Highest roller gets to place it's armies first!\n", verbose, print_duration)
+        player = self.players[first_player(self.players, verbose)]
+        print_verbose(f"{player.name.capitalize()} may begin!\n", verbose, print_duration)
 
-        self.board.print_board(0)
+        if verbose:
+            self.board.print_board(print_duration)
         while self.board.free_territories:
             assert self.armies[player.id] >= 0, "Not enough armies in the box."
             territory = player.claim_territory(self.board)
             extra_info = f"{player.name} claimed {self.board.free_territories[territory].name}"
             self.board.claim_territory(territory, player)
-            self.board.print_board(0, [extra_info])
+            if verbose:
+                self.board.print_board(print_duration, [extra_info])
             player = self.players[(player.id + 1) % len(self.players)]
 
-        self.board.print_board(1, ["-- SETUP COMPLETE --"])
+        if verbose:
+            self.board.print_board(print_duration, ["-- SETUP COMPLETE --"])
 
-    def accumulate_armies(self, player: Player):
+    def accumulate_armies(self, player: Player, verbose: bool = True, print_duration: float = 1.0):
         if self.armies[player.id] == 0:
-            self.board.print_board(1, ['No more armies available in the box.'])
+            if verbose:
+                self.board.print_board(print_duration, ['No more armies available in the box.'])
             return
 
         armies = min(self.armies[player.id], max(3, len(player.territories) // 3))
@@ -126,10 +135,12 @@ class Game:
         extra_info.append(
             f'{player.name.capitalize()} has received a total of {armies} armies. {player.name.capitalize()} now has '
             f'{player.armies} armies.')
-        self.board.print_board(1, extra_info)
+        if verbose:
+            self.board.print_board(print_duration, extra_info)
 
-    def simulate_attack(self, player: Player, attack: int, attacker: Territory, defender: Territory):
-        self.board.print_board(1, [f'{attacker.player.name} attacks {defender.name}!'])
+    def simulate_attack(self, player: Player, attack: int, attacker: Territory, defender: Territory, verbose: bool):
+        if verbose:
+            self.board.print_board(1, [f'{attacker.player.name} attacks {defender.name}!'])
         verify_attack(player, attack, attacker, defender)
 
         # Amount of dice used by the defender
@@ -141,7 +152,8 @@ class Game:
         attacker_rolls.sort()
         defender_rolls.sort()
 
-        self.board.print_board(1, [info_1, info_2])
+        if verbose:
+            self.board.print_board(1, [info_1, info_2])
 
         attacker_losses = 0
         defender_losses = 0
@@ -170,7 +182,8 @@ class Game:
                 extra_info.append(
                     f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
 
-            self.board.print_board(2, extra_info)
+            if verbose:
+                self.board.print_board(2, extra_info)
             extra_info = []
 
             defender.player = attacker.player
@@ -199,24 +212,32 @@ class Game:
                         assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
 
                     extra_info.append(f'{winner.name.upper()} HAS WON THE GAME!!!')
-            self.board.print_board(1, extra_info)
+            if verbose:
+                self.board.print_board(1, extra_info)
 
         else:
-            self.board.print_board(1, [f'{player.name.capitalize()} was not able to take {defender.name}.'])
+            if verbose:
+                self.board.print_board(1, [f'{player.name.capitalize()} was not able to take {defender.name}.'])
 
-    def play(self):
-        print("Highest roller gets to go play first!\n")
-        player = first_player(self.players)
-        print(f"{self.players[player].name.capitalize()} may begin!\n")
+    def play(self, verbose: bool, max_duration: float = 0):
+        if verbose:
+            print_verbose("Highest roller gets to go play first!\n")
+        player = first_player(self.players, verbose)
+        if verbose:
+            print_verbose(f"{self.players[player].name.capitalize()} may begin!\n")
 
         turn = 1
         current_player = self.players[player]
-        while not self.game_over:
+
+        start = time.time()
+        duration = 0
+        turns_played = 0
+        while not self.game_over and (duration < max_duration or max_duration == 0):
             extra_info = [f'TURN {turn}:', f'{current_player.name}']
             turn += 1
 
             extra_info.append("Army Accumulation:")
-            self.accumulate_armies(current_player)
+            self.accumulate_armies(current_player, verbose)
 
             extra_info.append("Army Placement:")
             army_placement = current_player.place_armies(self.board)
@@ -228,21 +249,32 @@ class Game:
                 extra_info.append(f'    {territory.name}: {armies}')
                 self.board.place_armies(territory, current_player, armies)
 
-            self.board.print_board(1, extra_info)
+            if verbose:
+                self.board.print_board(1, extra_info)
 
             attack = current_player.attack(self.board)
             while attack is not None:
                 (die, attacker, defender) = attack
-                self.simulate_attack(current_player, die, attacker, defender)
+                self.simulate_attack(current_player, die, attacker, defender, verbose)
                 attack = current_player.attack(self.board)
 
             free_move = current_player.free_move(self.board)
             if free_move is not None:
-                self.board.print_board(1, [f"{current_player.name} uses a free move."])
+                if verbose:
+                    self.board.print_board(1, [f"{current_player.name} uses a free move."])
                 (armies, origin, destination) = free_move
                 execute_free_move(armies, origin, destination, current_player)
-                self.board.print_board(1, [f"Moved {armies} from {origin.name} to {destination.name}."])
+                if verbose:
+                    self.board.print_board(1, [f"Moved {armies} from {origin.name} to {destination.name}."])
 
             player += 1
             player %= len(self.players)
             current_player = self.players[player]
+
+            duration += time.time() - start
+            start = time.time()
+            turns_played += 1
+
+        if max_duration != 0:
+            print(f"Game took {duration} seconds.")
+            print(f"Played {turns_played} turns.")

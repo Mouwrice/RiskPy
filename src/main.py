@@ -8,8 +8,8 @@ def main():
                     RandomHostilePlayer("Player 3", "\033[93m"), RandomPeacefulPlayer("Player 4", "\033[94m")]
     board = ClassicBoard(len(players))
     game = Game(players, board)
-    game.setup()
-    game.play()
+    game.setup(False)
+    game.play(False, 10)
 
 
 if __name__ == '__main__':
