@@ -5,7 +5,6 @@ from territory import Territory
 
 
 class RandomPlayer(Player):
-
     def claim_territory(self, board: Board):
         return random.randint(0, len(board.free_territories) - 1)
 
@@ -87,6 +86,7 @@ class RandomPeacefulPlayer(RandomPlayer):
     """
     Never attacks
     """
+
     def attack(self, board: Board, attack_chance=0):
         return None
 
@@ -95,5 +95,6 @@ class RandomHostilePlayer(RandomPlayer):
     """
     Always attacks and always places armies
     """
+
     def attack(self, board: Board, attack_chance=1):
         return super().attack(board, attack_chance)
