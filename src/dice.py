@@ -21,7 +21,7 @@ def _player_rolls_dice(player: Player, amount: int) -> ([int], str):
     :returns: A tuple of (a list of die rolls, a textual result)
     """
     rolls = _roll_dice(amount)
-    joined = ', '.join([str(roll) for roll in rolls])
+    joined = ", ".join([str(roll) for roll in rolls])
     return rolls, f"{player.name.capitalize()} rolls {amount} {'dice' if amount > 1 else 'die'}: {joined}"
 
 

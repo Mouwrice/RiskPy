@@ -38,27 +38,31 @@ def first_player(players: [Player], verbose):
 
 
 def verify_attack(player: Player, die: int, attacker: Territory, defender: Territory):
-    assert attacker.player == player, f'Invalid attack territory. Territory {attacker.name} should be owned by' \
-                                      f'{player.name.capitalize()}'
-    assert 0 < die < attacker.armies, f'Number of dies should be between 1 and 3 and one less than the amount of' \
-                                      'armies' \
-                                      f'on the territory.\n' \
-                                      f'armies: {attacker.armies}\n' \
-                                      f'die:    {die}\n'
-    assert defender.player != player, f'Can only attack other players, not yourself.'
+    assert attacker.player == player, (
+        f"Invalid attack territory. Territory {attacker.name} should be owned by" f"{player.name.capitalize()}"
+    )
+    assert 0 < die < attacker.armies, (
+        f"Number of dies should be between 1 and 3 and one less than the amount of"
+        "armies"
+        f"on the territory.\n"
+        f"armies: {attacker.armies}\n"
+        f"die:    {die}\n"
+    )
+    assert defender.player != player, "Can only attack other players, not yourself."
 
 
 def verify_defense(die: int, defender: Territory):
-    assert 0 < die <= max(2, defender.armies), f'Incorrect number of dies used by the defender.\n' \
-                                               f'{str(defender)}' \
-                                               f'die: {die}'
+    assert 0 < die <= max(2, defender.armies), (
+        f"Incorrect number of dies used by the defender.\n" f"{str(defender)}" f"die: {die}"
+    )
 
 
 def verify_free_move(armies: int, origin: Territory, destination: Territory, player: Player):
     assert origin.player == player, f"Can only move armies from own territory not from {origin}"
     assert destination.player == player, f"Can only move armies to own territory not to {destination}"
-    assert armies < origin.armies, f"The amount of armies should be less than armies on the origin position, not " \
-                                   f"{armies}"
+    assert armies < origin.armies, (
+        f"The amount of armies should be less than armies on the origin position, not " f"{armies}"
+    )
 
 
 def execute_free_move(armies: int, origin: Territory, destination: Territory, player: Player):
@@ -87,7 +91,7 @@ class Game:
         """
         print_verbose("--- SETUP ---\n", verbose, print_duration)
         armies_per_players = [50, 35, 30, 25, 20][len(self.players) - 2]
-        print_verbose(f'Armies per player: {armies_per_players}\n', verbose, print_duration)
+        print_verbose(f"Armies per player: {armies_per_players}\n", verbose, print_duration)
 
         # Every player receives initial amount of armies
         for player in self.players:
@@ -117,12 +121,12 @@ class Game:
     def accumulate_armies(self, player: Player, verbose: bool = True, print_duration: float = 1.0):
         if self.armies[player.id] == 0:
             if verbose:
-                self.board.print_board(print_duration, ['No more armies available in the box.'])
+                self.board.print_board(print_duration, ["No more armies available in the box."])
             return
 
         armies = min(self.armies[player.id], max(3, len(player.territories) // 3))
 
-        extra_info = [f'{player.name.capitalize()} receives {armies} armies.']
+        extra_info = [f"{player.name.capitalize()} receives {armies} armies."]
 
         if self.armies[player.id] <= 3:
             player.armies += armies
@@ -134,22 +138,24 @@ class Game:
             if extra < self.armies[player.id]:
                 armies += extra
                 extra_info.append(
-                    f'{player.name.capitalize()} receives {extra} armies for '
-                    'occupying the entirety of {continent.name}!')
+                    f"{player.name.capitalize()} receives {extra} armies for "
+                    "occupying the entirety of {continent.name}!"
+                )
             else:
-                extra_info.append(f'Not enough armies in the box.')
+                extra_info.append("Not enough armies in the box.")
 
         player.armies += armies
         self.armies[player.id] -= armies
         extra_info.append(
-            f'{player.name.capitalize()} has received a total of {armies} armies. {player.name.capitalize()} now has '
-            f'{player.armies} armies.')
+            f"{player.name.capitalize()} has received a total of {armies} armies. {player.name.capitalize()} now has "
+            f"{player.armies} armies."
+        )
         if verbose:
             self.board.print_board(print_duration, extra_info)
 
     def simulate_attack(self, player: Player, attack: int, attacker: Territory, defender: Territory, verbose: bool):
         if verbose:
-            self.board.print_board(1, [f'{attacker.player.name} attacks {defender.name}!'])
+            self.board.print_board(1, [f"{attacker.player.name} attacks {defender.name}!"])
         verify_attack(player, attack, attacker, defender)
 
         # Amount of dice used by the defender
@@ -178,7 +184,7 @@ class Game:
         self.armies[defender.player.id] += defender_losses
 
         if defender.armies == 0:
-            extra_info = [f'{player.name.capitalize()} has defeated all armies and captures {defender.name}!']
+            extra_info = [f"{player.name.capitalize()} has defeated all armies and captures {defender.name}!"]
             defending_player = defender.player
             defender.player.territories.remove(defender)
             attacker.player.territories.add(defender)
@@ -186,10 +192,12 @@ class Game:
             extra_info.append("Losses:")
             if attacker_losses > 0:
                 extra_info.append(
-                    f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}.')
+                    f"    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}."
+                )
             if defender_losses > 0:
                 extra_info.append(
-                    f'    Defender lost {defender_losses} armies. {defender.armies} remaining on {defender.name}.')
+                    f"    Defender lost {defender_losses} armies. {defender.armies} remaining on {defender.name}."
+                )
 
             if verbose:
                 self.board.print_board(2, extra_info)
@@ -197,10 +205,13 @@ class Game:
 
             defender.player = attacker.player
             capture = attacker.player.capture(attack, attacker, defender)
-            assert capture >= attack, "You must move into the territory with at least as many armies" \
-                                      "as the number of dice rolled."
-            assert capture < attacker.armies, "Not enough armies on territory. No territory may ever" \
-                                              "be left unoccupied at any time during the game."
+            assert capture >= attack, (
+                "You must move into the territory with at least as many armies" "as the number of dice rolled."
+            )
+            assert capture < attacker.armies, (
+                "Not enough armies on territory. No territory may ever"
+                "be left unoccupied at any time during the game."
+            )
             defender.armies = capture
             attacker.armies -= capture
 
@@ -208,10 +219,10 @@ class Game:
             defender.continent.players[attacker.player.id] += 1
 
             if defender.continent.players[attacker.player.id] == defender.continent.size:
-                extra_info.append(f'{attacker.player.name} has taken over the entirety of {defender.continent.name}!')
+                extra_info.append(f"{attacker.player.name} has taken over the entirety of {defender.continent.name}!")
 
             if len(defending_player.territories) == 0:
-                extra_info.append(f'{defending_player.name.upper()} IS DEFEATED BY {attacker.player.name.upper()}!!')
+                extra_info.append(f"{defending_player.name.upper()} IS DEFEATED BY {attacker.player.name.upper()}!!")
                 self.players.remove(defending_player)
                 self.defeated_players.append(defending_player)
 
@@ -220,15 +231,15 @@ class Game:
                     self.game_over = True
                     winner = self.players[0]
                     for territory in self.board.territories:
-                        assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
+                        assert territory.player == winner, "Oops. Not all territories are occupied by the winner..."
 
-                    extra_info.append(f'{winner.name.upper()} HAS WON THE GAME!!!')
+                    extra_info.append(f"{winner.name.upper()} HAS WON THE GAME!!!")
             if verbose or self.game_over:
                 self.board.print_board(1, extra_info)
 
         else:
             if verbose:
-                self.board.print_board(1, [f'{player.name.capitalize()} was not able to take {defender.name}.'])
+                self.board.print_board(1, [f"{player.name.capitalize()} was not able to take {defender.name}."])
 
     def play(self, verbose: bool, max_duration: float = math.inf, max_turns: int = sys.maxsize):
         """
@@ -252,7 +263,7 @@ class Game:
         duration = 0
         turns_played = 0
         for turns_played in trange(max_turns):
-            extra_info = [f'TURN {turn}:', f'{current_player.name}']
+            extra_info = [f"TURN {turn}:", f"{current_player.name}"]
             turn += 1
 
             extra_info.append("Army Accumulation:")
@@ -263,9 +274,9 @@ class Game:
             if len(army_placement) == 0:
                 extra_info.append("No armies placed.")
             else:
-                extra_info.append(f'{current_player.name.capitalize()} places armies on:')
+                extra_info.append(f"{current_player.name.capitalize()} places armies on:")
             for (armies, territory) in army_placement:
-                extra_info.append(f'    {territory.name}: {armies}')
+                extra_info.append(f"    {territory.name}: {armies}")
                 self.board.place_armies(territory, current_player, armies)
 
             if verbose:

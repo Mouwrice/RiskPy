@@ -10,7 +10,7 @@ def sanitize_territories(territories: [Territory]):
     """
     ids = set()
     for territory in territories:
-        assert territory.id not in ids, f'Territory id\'s should be unique. Found double id: {territory.id}'
+        assert territory.id not in ids, f"Territory id's should be unique. Found double id: {territory.id}"
         ids.add(territory.id)
 
 
@@ -20,7 +20,7 @@ def sanitize_continents(continents: [Continent]):
     """
     ids = set()
     for continent in continents:
-        assert continent.id not in ids, f'Continent id\'s should be unique. Found double id: {continent.id}'
+        assert continent.id not in ids, f"Continent id's should be unique. Found double id: {continent.id}"
 
 
 class Board:
@@ -43,10 +43,14 @@ class Board:
         self.extra_info = [""] * 6  # Extra lines to print game info on the board
 
     def __str__(self):
-        return '\n'.join([f'\n{self.id_to_territory[key].name}: {self.id_to_territory[key].continent.name} '
-                          f'{[connection.name for connection in self.id_to_territory[key].connections]}\n'
-                          + str(self.id_to_territory[key]) for key in
-                          self.id_to_territory.keys()])
+        return "\n".join(
+            [
+                f"\n{self.id_to_territory[key].name}: {self.id_to_territory[key].continent.name} "
+                f"{[connection.name for connection in self.id_to_territory[key].connections]}\n"
+                + str(self.id_to_territory[key])
+                for key in self.id_to_territory.keys()
+            ]
+        )
 
     def claim_territory(self, territory_index: int, player):
         """
@@ -83,7 +87,7 @@ class Board:
                     self.extra_info[i] = extra_info[i][:75]
                 else:
                     self.extra_info[i] = ""
-        os.system('cls' if os.name == 'nt' else 'clear')
+        os.system("cls" if os.name == "nt" else "clear")
         print(self)
         time.sleep(delay)
 
@@ -205,14 +209,53 @@ class ClassicBoard(Board):
 
         continents = [north_america, south_america, europe, asia, africa, australia]
 
-        super().__init__(continents,
-                         [alaska, northwest_territory, greenland, alberta, ontario, quebec, western_us, eastern_us,
-                          central_america, venezuela, brazil, peru, argentina, iceland, scandinavia, great_britain,
-                          northern_europe, ukraine, western_europe, southern_europe, yakutsk, ural, siberia, irkutsk,
-                          kamchatka, afghanistan, china, mongolia, japan, middle_east, india, siam, north_africa,
-                          egypt,
-                          congo, east_africa, south_africa, madagascar, indonesia, new_guinea, western_australia,
-                          eastern_australia])
+        super().__init__(
+            continents,
+            [
+                alaska,
+                northwest_territory,
+                greenland,
+                alberta,
+                ontario,
+                quebec,
+                western_us,
+                eastern_us,
+                central_america,
+                venezuela,
+                brazil,
+                peru,
+                argentina,
+                iceland,
+                scandinavia,
+                great_britain,
+                northern_europe,
+                ukraine,
+                western_europe,
+                southern_europe,
+                yakutsk,
+                ural,
+                siberia,
+                irkutsk,
+                kamchatka,
+                afghanistan,
+                china,
+                mongolia,
+                japan,
+                middle_east,
+                india,
+                siam,
+                north_africa,
+                egypt,
+                congo,
+                east_africa,
+                south_africa,
+                madagascar,
+                indonesia,
+                new_guinea,
+                western_australia,
+                eastern_australia,
+            ],
+        )
 
         self.armies_per_continent[north_america] = 5
         self.armies_per_continent[south_america] = 2
@@ -234,7 +277,9 @@ class ClassicBoard(Board):
             else:
                 v.append(territory.player.colorize_text("*"))
                 h.append(territory.player.colorize_text("*****"))
-                t.append(str(territory.player.id) + (4 - len(str(territory.armies))) * " " + str(territory.armies) + " ")
+                t.append(
+                    str(territory.player.id) + (4 - len(str(territory.armies))) * " " + str(territory.armies) + " "
+                )
 
         i = []
         for info in self.extra_info:
@@ -243,57 +288,59 @@ class ClassicBoard(Board):
             else:
                 i.append(info + (74 - len(info)) * " ")
 
-        return f"         +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n" \
-               f"         |                                                                                                                                                                       |\n" \
-               f"  # # #  |  # # # # # # # # # # # # # # # # # # #                                                                                                        # # # # # # # # # # #   |\n" \
-               f" #       |                                       #                                                                                                      #                     #  |\n" \
-               f"#      {h[0]}           {h[1]}           {h[2]}      #                                                                                                    #       {h[20]}             |\n" \
-               f"#    {v[0]} ALASK {v[0]} ----- {v[1]} NORTH {v[1]} ----- {v[2]} GREEN {v[2]} -----+                  ..........                                               ........              #      {v[20]} YAKUT {v[20]}           |  #\n" \
-               f"#    {v[0]} {t[0]}{v[0]}       {v[1]} {t[1]}{v[1]}       {v[2]} {t[2]}{v[2]}    #  \\                 . EUROPE .                                               . ASIA .             #       {v[20]} {t[20]}{v[20]}           |    #\n" \
-               f"#      {h[0]}       /   {h[1]}       /   {h[2]}      #   \\                ..........                                               ........            #      /   {h[20]}   \\         |     #\n" \
-               f"#        |        /      |        /      |        #    \\                                                                                           #      /      |      \\        |      #\n" \
-               f"#        |       /       |       /       |        #     \\     # # # # # # # # # # # # # # # #                             # # # # # # # # # # # # #      /       |       \\       |       #\n" \
-               f"#        |      /        |      /        |        #      \\   #                               #                           #                              /        |        \\      |       #\n" \
-               f"#      {h[3]}   /       {h[4]}   /       {h[5]}      #       \\ #      {h[13]}           {h[14]}      #                          #     {h[21]}           {h[22]}   /       {h[23]}       \\   {h[24]}     #\n" \
-               f"#    {v[3]} ALBER {v[3]} ----- {v[4]} ONTAR {v[4]} ----- {v[5]} QUEBE {v[5]}    #        ----- {v[13]} ICELA {v[13]} ----- {v[14]} SCAND {v[14]}     #                      +----- {v[21]} URAL  {v[21]} ----- {v[22]} SIBER {v[22]} ----- {v[23]} IRKUT {v[23]} ----- {v[24]} KAMCA {v[24]}   #\n" \
-               f"#    {v[3]} {t[3]}{v[3]}       {v[4]} {t[4]}{v[4]}       {v[5]} {t[5]}{v[5]}    #         #    {v[13]} {t[13]}{v[13]}       {v[14]} {t[14]}{v[14]}     #                     /   #   {v[21]} {t[21]}{v[21]}       {v[22]} {t[22]}{v[22]}       {v[23]} {t[23]}{v[23]}       {v[24]} {t[24]}{v[24]}   #\n" \
-               f"#      {h[3]}       /   {h[4]}       /   {h[5]}      #         #      {h[13]}       /   {h[14]}   \\     #                  /    #     {h[21]}   \\       {h[22]}   \\       {h[23]}       /   {h[24]}     #\n" \
-               f"#        |        /      |        /              #          #        |        /      |      \\     #                /     #       |      \\        |      \\        |        /      |       #\n" \
-               f"#        |       /       |       /     # # # # #            #        |       /       |       \\     # # # # #      /      #       |       \\       |       \\       |       /       |       #\n" \
-               f"#        |      /        |      /     #                     #        |      /        |        \\             #    /       #       |        \\      |        \\      |      /        |       #\n" \
-               f"#      {h[6]}   /       {h[7]}   /     #                      #      {h[15]}   /       {h[16]}       \\   {h[17]}     #  /        #     {h[25]}       \\   {h[26]}       \\   {h[27]}   /       {h[28]}     #\n" \
-               f"#    {v[6]} WESTE {v[6]} ----- {v[7]} EASTE {v[7]}      #                       #    {v[15]} GREAT {v[15]} ----- {v[16]} NORTH {v[16]} ----- {v[17]} UKRAI {v[17]} ----+------------ {v[25]} AFGHA {v[25]} ----- {v[26]} CHINA {v[26]} ----- {v[27]} MONGO {v[27]} ----- {v[28]} JAPAN {v[28]}   #\n" \
-               f"#    {v[6]} {t[6]}{v[6]}       {v[7]} {t[7]}{v[7]}     #                        #    {v[15]} {t[15]}{v[15]}       {v[16]} {t[16]}{v[16]}       {v[17]} {t[17]}{v[17]}    # \\        #   {v[25]} {t[25]}{v[25]}       {v[26]} {t[26]}{v[26]}       {v[27]} {t[27]}{v[27]}       {v[28]} {t[28]}{v[28]}   #\n" \
-               f"#      {h[6]}       /   {h[7]}      #                         #      {h[15]}   \\       {h[16]}   \\       {h[17]}      #  \\       #     {h[25]}   \\       {h[26]}   \\       {h[27]}           {h[28]}     #\n" \
-               f"#        |        /              #                          #               \\        |      \\        |        #   \\      #       |      \\        |      \\        |                      #\n" \
-               f"#        |       /     # # # # #                             #               \\       |       \\       |        #    \\     #       |       \\       |       \\       |           # # # # # #\n" \
-               f"#        |      /     #                                       #               \\      |        \\      |        #     \\    #       |        \\      |        \\      |          #\n" \
-               f"#      {h[8]}   /     #   .................                     #               \\   {h[18]}       \\   {h[19]}      #      \\   #     {h[29]}       \\   {h[30]}       \\   {h[31]}       #\n" \
-               f"#    {v[8]} CENTR {v[8]}      #    . NORTH AMERICA .                      #                {v[18]} WESTE {v[18]} ----- {v[19]} SOUTH {v[19]} -----------+----- {v[29]} MIDDL {v[29]} ----- {v[30]} INDIA {v[30]} ----- {v[31]} SIAM  {v[31]}    #\n" \
-               f"#    {v[8]} {t[8]}{v[8]}     #     .................                       #               {v[18]} {t[18]}{v[18]}       {v[19]} {t[19]}{v[19]}    #      /   #   {v[29]} {t[29]}{v[29]}       {v[30]} {t[30]}{v[30]}       {v[31]} {t[31]}{v[31]}   #\n" \
-               f"#      {h[8]}      #                                               #                {h[18]}        /  {h[19]}      #     /      /   {h[29]}           {h[30]}           {h[31]}    #\n" \
-               f" #       |       #                                                 #                 |         /     |      #      /      /                                      |     #\n" \
-               f"  # # #  |  # # #                                                   # # # # # # # #  |  # #   /   #  |  # #       /      /  # # # # # # # # # # # # # # # # # #  |  # #\n" \
-               f"         |                                                                           |       /       |           /      /                                        |\n" \
-               f"  # # #  |  # # # # # # # # # # #                                             # # #  |  #   /  # #   |  # # #   /      /                                  # # #  | # # # # # # # # # # # #\n" \
-               f" #       |                       #                                           #       |     /         |       # /      /                                 #        |                        #\n" \
-               f"#      {h[9]}           {h[10]}     #                                          #      {h[32]}  /        {h[33]}      /      /                                  #      {h[38]}           {h[39]}      #\n" \
-               f"#    {v[9]} VENEZ {v[9]} ----- {v[10]} BRAZI {v[10]} ------------------------------------------------- {v[32]} NORTH {v[32]} ----- {v[33]} EGYPT {v[33]} --+      /                                   #    {v[38]} INDON {v[38]} ----- {v[39]} NEW G {v[39]}    #\n" \
-               f"#    {v[9]} {t[9]}{v[9]}       {v[10]} {t[10]}{v[10]}    #                                         #    {v[32]} {t[32]}{v[32]}       {v[33]} {t[33]}{v[33]}    #    /                   .............    #    {v[38]} {t[38]}{v[38]}       {v[39]} {t[39]}{v[39]}    #\n" \
-               f"#      {h[9]}       /   {h[10]}      #                                         #      {h[32]}   \\       {h[33]}      #   /                    . AUSTRALIA .    #      {h[38]}       /   {h[39]}      #\n" \
-               f"#        |        /      |        #                                         #        |      \\        |        #  /                     .............    #        |        /      |        #\n" \
-               f"#        |       /       |        #                                         #        |       \\       |        # /                                       #        |       /       |        #\n" \
-               f"#        |      /        |        #                                         #        |        \\      |         /                                        #        |      /        |        #\n" \
-               f"#      {h[11]}   /       {h[12]}      #   .................                     #      {h[34]}       \\   {h[35]}      /                                         #       {h[40]}   /       {h[41]}     #\n" \
-               f"#    {v[11]} PERU  {v[11]} ----- {v[12]} ARGEN {v[12]}    #   . SOUTH AMERICA .                     #    {v[34]} CONGO {v[34]} ----- {v[35]} EAST  {v[35]} --+                                          #     {v[40]} WESTE {v[40]} ----- {v[41]} EASTE {v[41]}   #\n" \
-               f"#    {v[11]} {t[11]}{v[11]}       {v[12]} {t[12]}{v[12]}    #   .................                     #    {v[34]} {t[34]}{v[34]}       {v[35]} {t[35]}{v[35]}    #                                         #     {v[40]} {t[40]}{v[40]}       {v[41]} {t[41]}{v[41]}   #\n" \
-               f"#      {h[11]}           {h[12]}      #                                         #      {h[34]}       /   {h[35]}      #                                         #       {h[40]}           {h[41]}     #\n" \
-               f" #                               #                                          #        |        /      |        #                                         #                                 #\n" \
-               f"  # # # # # # # # # # # # # # # #                                           #        |       /       |        #                                           # # # # # # # # # # # # # # # #\n" \
-               f"                                                                            #        |      /        |        #\n" \
-               f" {i[0]} #      {h[36]}   /       {h[37]}      #   ..........\n" \
-               f" {i[1]} #    {v[36]} SOUTH {v[36]} ----- {v[37]} MADAG {v[37]}    #   . AFRICA .\n" \
-               f" {i[2]} #    {v[36]} {t[36]}{v[36]}       {v[37]} {t[37]}{v[37]}    #   ..........\n" \
-               f" {i[3]} #      {h[36]}           {h[37]}      #\n" \
-               f" {i[4]}  #                               #\n" \
-               f" {i[5]}    # # # # # # # # # # # # # # #\n"
+        return (
+            f"         +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+            f"         |                                                                                                                                                                       |\n"
+            f"  # # #  |  # # # # # # # # # # # # # # # # # # #                                                                                                        # # # # # # # # # # #   |\n"
+            f" #       |                                       #                                                                                                      #                     #  |\n"
+            f"#      {h[0]}           {h[1]}           {h[2]}      #                                                                                                    #       {h[20]}             |\n"
+            f"#    {v[0]} ALASK {v[0]} ----- {v[1]} NORTH {v[1]} ----- {v[2]} GREEN {v[2]} -----+                  ..........                                               ........              #      {v[20]} YAKUT {v[20]}           |  #\n"
+            f"#    {v[0]} {t[0]}{v[0]}       {v[1]} {t[1]}{v[1]}       {v[2]} {t[2]}{v[2]}    #  \\                 . EUROPE .                                               . ASIA .             #       {v[20]} {t[20]}{v[20]}           |    #\n"
+            f"#      {h[0]}       /   {h[1]}       /   {h[2]}      #   \\                ..........                                               ........            #      /   {h[20]}   \\         |     #\n"
+            f"#        |        /      |        /      |        #    \\                                                                                           #      /      |      \\        |      #\n"
+            f"#        |       /       |       /       |        #     \\     # # # # # # # # # # # # # # # #                             # # # # # # # # # # # # #      /       |       \\       |       #\n"
+            f"#        |      /        |      /        |        #      \\   #                               #                           #                              /        |        \\      |       #\n"
+            f"#      {h[3]}   /       {h[4]}   /       {h[5]}      #       \\ #      {h[13]}           {h[14]}      #                          #     {h[21]}           {h[22]}   /       {h[23]}       \\   {h[24]}     #\n"
+            f"#    {v[3]} ALBER {v[3]} ----- {v[4]} ONTAR {v[4]} ----- {v[5]} QUEBE {v[5]}    #        ----- {v[13]} ICELA {v[13]} ----- {v[14]} SCAND {v[14]}     #                      +----- {v[21]} URAL  {v[21]} ----- {v[22]} SIBER {v[22]} ----- {v[23]} IRKUT {v[23]} ----- {v[24]} KAMCA {v[24]}   #\n"
+            f"#    {v[3]} {t[3]}{v[3]}       {v[4]} {t[4]}{v[4]}       {v[5]} {t[5]}{v[5]}    #         #    {v[13]} {t[13]}{v[13]}       {v[14]} {t[14]}{v[14]}     #                     /   #   {v[21]} {t[21]}{v[21]}       {v[22]} {t[22]}{v[22]}       {v[23]} {t[23]}{v[23]}       {v[24]} {t[24]}{v[24]}   #\n"
+            f"#      {h[3]}       /   {h[4]}       /   {h[5]}      #         #      {h[13]}       /   {h[14]}   \\     #                  /    #     {h[21]}   \\       {h[22]}   \\       {h[23]}       /   {h[24]}     #\n"
+            f"#        |        /      |        /              #          #        |        /      |      \\     #                /     #       |      \\        |      \\        |        /      |       #\n"
+            f"#        |       /       |       /     # # # # #            #        |       /       |       \\     # # # # #      /      #       |       \\       |       \\       |       /       |       #\n"
+            f"#        |      /        |      /     #                     #        |      /        |        \\             #    /       #       |        \\      |        \\      |      /        |       #\n"
+            f"#      {h[6]}   /       {h[7]}   /     #                      #      {h[15]}   /       {h[16]}       \\   {h[17]}     #  /        #     {h[25]}       \\   {h[26]}       \\   {h[27]}   /       {h[28]}     #\n"
+            f"#    {v[6]} WESTE {v[6]} ----- {v[7]} EASTE {v[7]}      #                       #    {v[15]} GREAT {v[15]} ----- {v[16]} NORTH {v[16]} ----- {v[17]} UKRAI {v[17]} ----+------------ {v[25]} AFGHA {v[25]} ----- {v[26]} CHINA {v[26]} ----- {v[27]} MONGO {v[27]} ----- {v[28]} JAPAN {v[28]}   #\n"
+            f"#    {v[6]} {t[6]}{v[6]}       {v[7]} {t[7]}{v[7]}     #                        #    {v[15]} {t[15]}{v[15]}       {v[16]} {t[16]}{v[16]}       {v[17]} {t[17]}{v[17]}    # \\        #   {v[25]} {t[25]}{v[25]}       {v[26]} {t[26]}{v[26]}       {v[27]} {t[27]}{v[27]}       {v[28]} {t[28]}{v[28]}   #\n"
+            f"#      {h[6]}       /   {h[7]}      #                         #      {h[15]}   \\       {h[16]}   \\       {h[17]}      #  \\       #     {h[25]}   \\       {h[26]}   \\       {h[27]}           {h[28]}     #\n"
+            f"#        |        /              #                          #               \\        |      \\        |        #   \\      #       |      \\        |      \\        |                      #\n"
+            f"#        |       /     # # # # #                             #               \\       |       \\       |        #    \\     #       |       \\       |       \\       |           # # # # # #\n"
+            f"#        |      /     #                                       #               \\      |        \\      |        #     \\    #       |        \\      |        \\      |          #\n"
+            f"#      {h[8]}   /     #   .................                     #               \\   {h[18]}       \\   {h[19]}      #      \\   #     {h[29]}       \\   {h[30]}       \\   {h[31]}       #\n"
+            f"#    {v[8]} CENTR {v[8]}      #    . NORTH AMERICA .                      #                {v[18]} WESTE {v[18]} ----- {v[19]} SOUTH {v[19]} -----------+----- {v[29]} MIDDL {v[29]} ----- {v[30]} INDIA {v[30]} ----- {v[31]} SIAM  {v[31]}    #\n"
+            f"#    {v[8]} {t[8]}{v[8]}     #     .................                       #               {v[18]} {t[18]}{v[18]}       {v[19]} {t[19]}{v[19]}    #      /   #   {v[29]} {t[29]}{v[29]}       {v[30]} {t[30]}{v[30]}       {v[31]} {t[31]}{v[31]}   #\n"
+            f"#      {h[8]}      #                                               #                {h[18]}        /  {h[19]}      #     /      /   {h[29]}           {h[30]}           {h[31]}    #\n"
+            f" #       |       #                                                 #                 |         /     |      #      /      /                                      |     #\n"
+            f"  # # #  |  # # #                                                   # # # # # # # #  |  # #   /   #  |  # #       /      /  # # # # # # # # # # # # # # # # # #  |  # #\n"
+            f"         |                                                                           |       /       |           /      /                                        |\n"
+            f"  # # #  |  # # # # # # # # # # #                                             # # #  |  #   /  # #   |  # # #   /      /                                  # # #  | # # # # # # # # # # # #\n"
+            f" #       |                       #                                           #       |     /         |       # /      /                                 #        |                        #\n"
+            f"#      {h[9]}           {h[10]}     #                                          #      {h[32]}  /        {h[33]}      /      /                                  #      {h[38]}           {h[39]}      #\n"
+            f"#    {v[9]} VENEZ {v[9]} ----- {v[10]} BRAZI {v[10]} ------------------------------------------------- {v[32]} NORTH {v[32]} ----- {v[33]} EGYPT {v[33]} --+      /                                   #    {v[38]} INDON {v[38]} ----- {v[39]} NEW G {v[39]}    #\n"
+            f"#    {v[9]} {t[9]}{v[9]}       {v[10]} {t[10]}{v[10]}    #                                         #    {v[32]} {t[32]}{v[32]}       {v[33]} {t[33]}{v[33]}    #    /                   .............    #    {v[38]} {t[38]}{v[38]}       {v[39]} {t[39]}{v[39]}    #\n"
+            f"#      {h[9]}       /   {h[10]}      #                                         #      {h[32]}   \\       {h[33]}      #   /                    . AUSTRALIA .    #      {h[38]}       /   {h[39]}      #\n"
+            f"#        |        /      |        #                                         #        |      \\        |        #  /                     .............    #        |        /      |        #\n"
+            f"#        |       /       |        #                                         #        |       \\       |        # /                                       #        |       /       |        #\n"
+            f"#        |      /        |        #                                         #        |        \\      |         /                                        #        |      /        |        #\n"
+            f"#      {h[11]}   /       {h[12]}      #   .................                     #      {h[34]}       \\   {h[35]}      /                                         #       {h[40]}   /       {h[41]}     #\n"
+            f"#    {v[11]} PERU  {v[11]} ----- {v[12]} ARGEN {v[12]}    #   . SOUTH AMERICA .                     #    {v[34]} CONGO {v[34]} ----- {v[35]} EAST  {v[35]} --+                                          #     {v[40]} WESTE {v[40]} ----- {v[41]} EASTE {v[41]}   #\n"
+            f"#    {v[11]} {t[11]}{v[11]}       {v[12]} {t[12]}{v[12]}    #   .................                     #    {v[34]} {t[34]}{v[34]}       {v[35]} {t[35]}{v[35]}    #                                         #     {v[40]} {t[40]}{v[40]}       {v[41]} {t[41]}{v[41]}   #\n"
+            f"#      {h[11]}           {h[12]}      #                                         #      {h[34]}       /   {h[35]}      #                                         #       {h[40]}           {h[41]}     #\n"
+            f" #                               #                                          #        |        /      |        #                                         #                                 #\n"
+            f"  # # # # # # # # # # # # # # # #                                           #        |       /       |        #                                           # # # # # # # # # # # # # # # #\n"
+            f"                                                                            #        |      /        |        #\n"
+            f" {i[0]} #      {h[36]}   /       {h[37]}      #   ..........\n"
+            f" {i[1]} #    {v[36]} SOUTH {v[36]} ----- {v[37]} MADAG {v[37]}    #   . AFRICA .\n"
+            f" {i[2]} #    {v[36]} {t[36]}{v[36]}       {v[37]} {t[37]}{v[37]}    #   ..........\n"
+            f" {i[3]} #      {h[36]}           {h[37]}      #\n"
+            f" {i[4]}  #                               #\n"
+            f" {i[5]}    # # # # # # # # # # # # # # #\n"
+        )
