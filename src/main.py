@@ -4,12 +4,12 @@ from random_player import RandomPlayer, RandomPeacefulPlayer, RandomHostilePlaye
 
 
 def main():
-    players = [  # RandomPlayer("Player 1", "\033[91m"), RandomPlayer("Player 2", "\033[92m"),
-                    RandomHostilePlayer("Player 3", "\033[93m"), RandomPeacefulPlayer("Player 4", "\033[94m")]
+    players = [RandomPlayer("Player 1", "\033[91m"), RandomPlayer("Player 2", "\033[92m"),
+               RandomPlayer("Player 3", "\033[93m"), RandomPlayer("Player 4", "\033[94m")]
     board = ClassicBoard(len(players))
     game = Game(players, board)
     game.setup(False)
-    game.play(False, 10)
+    game.play(verbose=False, max_turns=10000)
 
 
 if __name__ == '__main__':

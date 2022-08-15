@@ -37,7 +37,7 @@ class RandomPlayer(Player):
         for territory in self.territories:
             # A territory should have at least 2 armies
             if territory.armies >= 2:
-                # Can only attack from a territory adjecent to an enemy territory
+                # Can only attack from a territory adjacent to an enemy territory
                 enemy_territories = []
                 for enemy_territory in territory.connections:
                     if enemy_territory.player != self:
@@ -49,7 +49,7 @@ class RandomPlayer(Player):
             return None
 
         (attacker, defender) = valid_attacks[random.randint(0, len(valid_attacks) - 1)]
-        dice = random.randint(1, min(attacker.armies - 1, 3))  # Attacker may only use a maximum of 3 dice
+        dice = random.randint(1, min(attacker.armies - 1, 3))  # Attacker may only use a maximum of 3 dices
         return dice, attacker, defender
 
     def capture(self, dice: int, attacker: Territory, defender: Territory):

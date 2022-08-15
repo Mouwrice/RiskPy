@@ -1,3 +1,5 @@
+import math
+import sys
 import time
 
 from board import Board
@@ -6,8 +8,13 @@ import dice
 from territory import Territory
 from util import print_verbose
 
+from tqdm import trange
+
 
 def first_player(players: [Player], verbose):
+    """
+    Decides which player gets to go first
+    """
     rolls = dice.players_roll_dice(players, verbose)
     players_index = [i for i in range(len(players))]
     highest = rolls[0]
@@ -33,7 +40,8 @@ def first_player(players: [Player], verbose):
 def verify_attack(player: Player, die: int, attacker: Territory, defender: Territory):
     assert attacker.player == player, f'Invalid attack territory. Territory {attacker.name} should be owned by' \
                                       f'{player.name.capitalize()}'
-    assert 0 < die < attacker.armies, f'Number of dies should be between 1 and 3 and one less than the amount of armies' \
+    assert 0 < die < attacker.armies, f'Number of dies should be between 1 and 3 and one less than the amount of' \
+                                      'armies' \
                                       f'on the territory.\n' \
                                       f'armies: {attacker.armies}\n' \
                                       f'die:    {die}\n'
@@ -126,7 +134,8 @@ class Game:
             if extra < self.armies[player.id]:
                 armies += extra
                 extra_info.append(
-                    f'{player.name.capitalize()} receives {extra} armies for occupying the entirety of {continent.name}!')
+                    f'{player.name.capitalize()} receives {extra} armies for '
+                    'occupying the entirety of {continent.name}!')
             else:
                 extra_info.append(f'Not enough armies in the box.')
 
@@ -180,7 +189,7 @@ class Game:
                     f'    Attacker lost {attacker_losses} armies. {attacker.armies} remaining on {attacker.name}.')
             if defender_losses > 0:
                 extra_info.append(
-                    f'    Defender lost {defender_losses} armies. {defender.armies} remaingin on {defender.name}.')
+                    f'    Defender lost {defender_losses} armies. {defender.armies} remaining on {defender.name}.')
 
             if verbose:
                 self.board.print_board(2, extra_info)
@@ -188,8 +197,10 @@ class Game:
 
             defender.player = attacker.player
             capture = attacker.player.capture(attack, attacker, defender)
-            assert capture >= attack, "You must move into the territory with at least as many armies as the number of dice rolled."
-            assert capture < attacker.armies, "Not enough armies on territory. No territory may ever be left unoccupied at any time during the game."
+            assert capture >= attack, "You must move into the territory with at least as many armies" \
+                                      "as the number of dice rolled."
+            assert capture < attacker.armies, "Not enough armies on territory. No territory may ever" \
+                                              "be left unoccupied at any time during the game."
             defender.armies = capture
             attacker.armies -= capture
 
@@ -212,14 +223,22 @@ class Game:
                         assert territory.player == winner, f"Oops. Not all territories are occupied by the winner..."
 
                     extra_info.append(f'{winner.name.upper()} HAS WON THE GAME!!!')
-            if verbose:
+            if verbose or self.game_over:
                 self.board.print_board(1, extra_info)
 
         else:
             if verbose:
                 self.board.print_board(1, [f'{player.name.capitalize()} was not able to take {defender.name}.'])
 
-    def play(self, verbose: bool, max_duration: float = 0):
+    def play(self, verbose: bool, max_duration: float = math.inf, max_turns: int = sys.maxsize):
+        """
+        Starts the actual game and game loop
+        :param verbose: Set to True if you want to print the game to the console
+        :param max_duration: Limit the duration of the game in seconds.
+        Defaults to +Inf
+        :param max_turns: Limit the amount of turns
+        Defaults to the highest integer value possible
+        """
         if verbose:
             print_verbose("Highest roller gets to go play first!\n")
         player = first_player(self.players, verbose)
@@ -232,7 +251,7 @@ class Game:
         start = time.time()
         duration = 0
         turns_played = 0
-        while not self.game_over and (duration < max_duration or max_duration == 0):
+        for turns_played in trange(max_turns):
             extra_info = [f'TURN {turn}:', f'{current_player.name}']
             turn += 1
 
@@ -275,6 +294,10 @@ class Game:
             start = time.time()
             turns_played += 1
 
-        if max_duration != 0:
+            if self.game_over or duration > max_duration:
+                break
+
+        if max_duration != -1 or max_turns != -1:
             print(f"Game took {duration} seconds.")
-            print(f"Played {turns_played} turns.")
+            print(f"Played {turns_played} turns in {duration} seconds.")
+            print(f"Average turn took {duration / turns_played} seconds.")
