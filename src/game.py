@@ -15,7 +15,7 @@ def first_player(players: [Player], verbose):
     """
     Decides which player gets to go first
     """
-    rolls = dice.players_roll_dice(players, verbose)
+    rolls = dice.players_roll_die(players, verbose)
     players_index = [i for i in range(len(players))]
     highest = rolls[0]
     i = 1
@@ -32,7 +32,7 @@ def first_player(players: [Player], verbose):
             loop += 1
             if loop == 2:
                 loop = 0
-                rolls = dice.players_roll_dice([players[player] for player in players_index], verbose)
+                rolls = dice.players_roll_die([players[player] for player in players_index], verbose)
 
     return players_index[0]
 
@@ -162,8 +162,8 @@ class Game:
         defense = defender.player.defend(attack, attacker, defender, self.board)
         verify_defense(defense, defender)
 
-        (attacker_rolls, info_1) = dice.player_rolls_dices(attacker.player, attack)
-        (defender_rolls, info_2) = dice.player_rolls_dices(defender.player, defense)
+        (attacker_rolls, info_1) = dice.player_rolls_dice(attacker.player, attack)
+        (defender_rolls, info_2) = dice.player_rolls_dice(defender.player, defense)
         attacker_rolls.sort()
         defender_rolls.sort()
 
