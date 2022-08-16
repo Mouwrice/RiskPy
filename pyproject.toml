@@ -1,2 +1,21 @@
+[tool.poetry]
+name = "riskpy"
+version = "0.1.0"
+description = "Risk, the original strategy board game, implemented in Python 3.10"
+authors = ["Mouwrice <mauricevanwassenhove@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pre-commit = "^2.20.0"
+autopep8 = "^1.7.0"
+flake8 = "^5.0.4"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 120
