@@ -13,7 +13,7 @@ def main():
     board = ClassicBoard(len(players))
     game = Game(players, board)
     game.setup(False)
-    game.play(verbose=False, max_turns=100000)
+    game.play(verbose=False, max_turns=1000000)
 
 
 if __name__ == "__main__":

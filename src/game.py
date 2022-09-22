@@ -74,7 +74,6 @@ def execute_free_move(armies: int, origin: Territory, destination: Territory, pl
 class Game:
     def __init__(self, players: [Player], board: Board):
         self.players: [Player] = players
-        self.defeated_players: [Player] = []
         for i, player in enumerate(self.players):
             player.id = i
 
@@ -224,7 +223,6 @@ class Game:
             if len(defending_player.territories) == 0:
                 extra_info.append(f"{defending_player.name.upper()} IS DEFEATED BY {attacker.player.name.upper()}!!")
                 self.players.remove(defending_player)
-                self.defeated_players.append(defending_player)
 
                 # Check for game over
                 if len(self.players) == 1:
