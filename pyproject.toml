@@ -10,7 +10,7 @@ python = "^3.10"
 autopep8 = "^1.7.0"
 flake8 = "^5.0.4"
 pre-commit = "^2.20.0"
-tqdm = "^4.64.0"
+tqdm = "^4.65.0"
 
 [tool.poetry.dev-dependencies]
 
